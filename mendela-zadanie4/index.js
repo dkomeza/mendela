@@ -3,6 +3,7 @@ let game = 0
 class mineSweeper {
     constructor(width, height, count) {
         mineSweeper.destroyGame()
+        this.timeInterval = null
         this.width = width
         this.height = height
         this.count = count
@@ -55,8 +56,8 @@ class mineSweeper {
 
     generateEvents(field, initial, count, remainingBombs) {
         let cells = document.getElementsByClassName("cell")
-        let timeInterval
         let startTime
+        let timeInterval
         for (let i = 0; i < cells.length; i++) {
             cells[i].dataset.position = 1;
             cells[i].onclick = function handleClick(){
@@ -65,14 +66,12 @@ class mineSweeper {
                 if (cells[i].dataset.position === "1") {
                     if (initial) {
                         initial = false
-                        mineSweeper.generateMines(field, x, y, count)
-                        mineSweeper.countMines(field)
+                        let mines = mineSweeper.generateMines(field, x, y, count)
+                        mineSweeper.countMines(field, mines)
                         startTime = new Date().getTime()
-                        timeInterval = setInterval(() => {
-                            time.innerText = `Time: ${Math.round((new Date().getTime() - startTime) / 1000)}s`
-                        }, 1000)
+                        mineSweeper.handleInterval(startTime)
                     }
-                    mineSweeper.uncoverFields(field, x, y, timeInterval, startTime, count)
+                    mineSweeper.uncoverFields(field, x, y, startTime, count)
                 }
             }
             cells[i].oncontextmenu = function handleRightClick(e) {
@@ -109,16 +108,19 @@ class mineSweeper {
             }
         }
     }
+
+    static handleInterval(startTime) {
+        this.timeInterval = setInterval(() => {
+            time.innerText = `Time: ${Math.round((new Date().getTime() - startTime) / 1000)}s`
+            console.log("Szmata")
+        }, 1000)
+        console.log(this.timeInterval)
+    }
     
     static generateMines(field, initialX, initialY, count) {
-        if (count > field.length * field[0].length - 9) {
-            window.alert("Too many mines")
-            return field
-        }
-    
         let x = field[0].length;
         let y = field.length;
-    
+        let mines = []
         for (let i = initialY - 1; i <= initialY + 1; i++) {
             for (let j = initialX - 1; j <= initialX + 1; j++) {
                 if (i >= 0 && i < y && j >= 0 && j < x) { 
@@ -131,39 +133,43 @@ class mineSweeper {
             let y1 = Math.floor(Math.random() * y);
             if (field[y1][x1] === 0) {
                 field[y1][x1] = -1;
+                mines.push([y1, x1])
             } else {
                 i--;
             }
         }
+        for (let i = initialY - 1; i <= initialY + 1; i++) {
+            for (let j = initialX - 1; j <= initialX + 1; j++) {
+                if (i >= 0 && i < y && j >= 0 && j < x) { 
+                    field[i][j] = 0
+                }
+            }
+        }
+        return mines
     }
     
-    static countMines(field) {
+    static countMines(field, mines) {
         let y = field.length;
         let x = field[0].length;
-    
-        for (let i = 0; i < y; i++) {
-            for (let j = 0; j < x; j++) {
-                if (field[i][j] !== -1) {
-                    let count = 0
-                    for (let y1 = i - 1; y1 <= i + 1; y1++) {
-                        for (let x1 = j - 1; x1 <= j + 1; x1++) {
-                            if (x1 >= 0 && x1 < x && y1 >= 0 && y1 < y && field[y1][x1] === -1) {
-                                count++
-                            }
-                        }
+        for (let i = 0; i < mines.length; i++) {
+            let y1 = mines[i][0];
+            let x1 = mines[i][1];
+            for (let j = y1 - 1; j <= y1 + 1; j++) {
+                for (let k = x1 - 1; k <= x1 + 1; k++) {
+                    if (j >= 0 && j < y && k >= 0 && k < x && field[j][k] !== -1) {
+                        field[j][k]++;
                     }
-                    field[i][j] = count
                 }
             }
         }
     }
     
-    static uncoverFields(field, clickX, clickY, timeInterval, startTime, mines) { 
+    static uncoverFields(field, clickX, clickY, startTime, mines) { 
         let cells = document.getElementsByClassName("cell")
         let clearCells = [[clickY, clickX]]
         let newCells = []
         if (field[clickY][clickX] === -1) {
-            mineSweeper.handleLoose(field, clickX, clickY, timeInterval)
+            mineSweeper.handleLoose(field, clickX, clickY)
             return
         }
         if (field[clickY][clickX] === 0) {
@@ -197,11 +203,11 @@ class mineSweeper {
             cells[index].oncontextmenu = (e) => e.preventDefault()
             
         }
-        mineSweeper.handleWin(field, timeInterval, startTime, mines)
+        mineSweeper.handleWin(field, startTime, mines)
     }
     
-    static handleLoose(field, clickX, clickY, timeInterval) {
-        clearInterval(timeInterval)
+    static handleLoose(field, clickX, clickY) {
+        clearInterval(this.timeInterval)
         let cells = document.getElementsByClassName("cell")
         let mines = []
         let y = field.length;
@@ -214,7 +220,6 @@ class mineSweeper {
                 }
             }
         }
-        // let currentMine = [clickY, clickY]
         let initialIndex = (clickY * field[0].length) + clickX
         cells[initialIndex].classList.add("click-bomb")
         let interval = 2000 / mines.length
@@ -247,7 +252,7 @@ class mineSweeper {
         }
     }
     
-    static handleWin(field, timeInterval, startTime, mines) {
+    static handleWin(field, startTime, mines) {
         let remainingFields = 0
         for (let i = 0; i < field.length; i++) {
             for (let j = 0; j < field[0].length; j++) {
@@ -257,7 +262,7 @@ class mineSweeper {
             }
         }
         if (remainingFields === 0) {
-            clearInterval(timeInterval)
+            clearInterval(this.timeInterval)
             window.alert("You win!")
             let endTime = (new Date().getTime())
             let time = endTime - startTime
@@ -303,6 +308,7 @@ class mineSweeper {
         if (document.getElementById("field")) {
             document.getElementById("field").remove()
         }
+        clearInterval(this.timeInterval)
     }
 }
 
@@ -349,6 +355,7 @@ function createForm() {
             return
         }
         else if (width > 0 && height > 0 && mines > 0) {
+            game = null
             game = new mineSweeper(width, height, mines)
             populteScoreBoard(width, height, mines)
         }
