@@ -6,6 +6,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script src="./index.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        body > div {
+            width: 60vw;
+            border: 2px solid black;
+            border-radius: 16px;
+            overflow: hidden;
+            columns: 5;
+            column-gap: 0;
+            box-shadow: 0px 0px 32px 8px rgba(0,0,0,0.75);
+        }
+
+        body > div div {
+            padding: 8px 16px;
+        }
+    </style>
 </head>
 <body>
     
