@@ -51,8 +51,10 @@ var Snek = /** @class */ (function () {
         };
     };
     Snek.prototype.createMoveInterval = function () {
+        var _this = this;
         var moveInterval = setInterval(function () {
-        }, 10);
+            _this.moveSnake(_this.field, _this.snek, Snek.rotation);
+        }, 1000);
         return moveInterval;
     };
     Snek.prototype.drawField = function (size) {
@@ -79,6 +81,27 @@ var Snek = /** @class */ (function () {
         }
         container.appendChild(table);
         document.body.appendChild(container);
+    };
+    Snek.prototype.moveSnake = function (field, snek, rotation) {
+        var newTile = [];
+        switch (rotation) {
+            case 0:
+                newTile = [snek[0][0] - 1, snek[0][1]];
+                break;
+            case 1:
+                newTile = [snek[0][0], snek[0][1] + 1];
+                break;
+            case 2:
+                newTile = [snek[0][0] + 1, snek[0][1]];
+                break;
+            case 3:
+                newTile = [snek[0][0], snek[0][1] - 1];
+                break;
+        }
+        snek.unshift(newTile);
+        var lastTile = snek.pop();
+        field[newTile[0]][newTile[1]] = -1;
+        field[lastTile[0]][lastTile[1]] = 0;
     };
     Snek.startGame = function () {
         console.log("Start");

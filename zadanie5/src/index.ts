@@ -3,6 +3,7 @@ class Snek {
     snek: number[][]
     static rotation: number
     static moveInterval: number
+
     constructor(size: number) {
         this.field = this.createField(size)
         Snek.rotation = Math.floor(Math.random() * 4)
@@ -59,8 +60,8 @@ class Snek {
 
     createMoveInterval() {
         let moveInterval = setInterval(() => {
-
-        }, 10)
+            this.moveSnake(this.field, this.snek, Snek.rotation)
+        }, 1000)
         return moveInterval
     }
 
@@ -88,6 +89,28 @@ class Snek {
         }
         container.appendChild(table)
         document.body.appendChild(container)
+    }
+
+    moveSnake(field: number[][], snek: number[][], rotation: number) {
+        let newTile: number[] = []
+        switch (rotation) {
+            case 0: 
+                newTile = [snek[0][0] - 1, snek[0][1]]
+                break
+            case 1: 
+                newTile = [snek[0][0], snek[0][1] + 1]
+                break
+            case 2: 
+                newTile = [snek[0][0] + 1, snek[0][1]]
+                break
+            case 3: 
+                newTile = [snek[0][0], snek[0][1] - 1]
+                break
+        }
+        snek.unshift(newTile)
+        let lastTile = snek.pop()!
+        field[newTile[0]][newTile[1]] = -1
+        field[lastTile[0]][lastTile[1]] = 0
     }
 
     static startGame() {
