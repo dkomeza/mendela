@@ -1,12 +1,14 @@
-class Snake {
+class Snek {
     field: number[][]
     snek: number[][]
     static rotation: number
+    static moveInterval: number
     constructor(size: number) {
         this.field = this.createField(size)
-        Snake.rotation = Math.floor(Math.random() * 4)
+        Snek.rotation = Math.floor(Math.random() * 4)
         this.snek = this.createSnake(this.field)
-        this.createEventListeners()
+        this.createKeyboardEvents()
+        Snek.moveInterval = this.createMoveInterval()
         this.drawField(size)
         console.table(this.field)
     }
@@ -31,28 +33,35 @@ class Snake {
         return snek
     }
 
-    createEventListeners() {
+    createKeyboardEvents() {
         window.onkeydown = function(e) {
             switch(e.code) {
                 case "Space": 
-                    Snake.startGame()
+                    Snek.startGame()
                     break
                 case "ArrowUp": 
-                    Snake.rotation = 0
+                    Snek.rotation = 0
                     break
                 case "ArrowDown": 
-                    Snake.rotation = 2
+                    Snek.rotation = 2
                     break
                 case "ArrowRight": 
-                    Snake.rotation = 1
+                    Snek.rotation = 1
                     break
                 case "ArrowLeft": 
-                    Snake.rotation = 3
+                    Snek.rotation = 3
                     break
                 default:
                     return
             }
         }
+    }
+
+    createMoveInterval() {
+        let moveInterval = setInterval(() => {
+
+        }, 10)
+        return moveInterval
     }
 
     drawField(size: number) {
@@ -86,4 +95,4 @@ class Snake {
     }
 }
 
-let game = new Snake(20)
+let game = new Snek(20)

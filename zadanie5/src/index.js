@@ -1,13 +1,14 @@
-var Snake = /** @class */ (function () {
-    function Snake(size) {
+var Snek = /** @class */ (function () {
+    function Snek(size) {
         this.field = this.createField(size);
-        Snake.rotation = Math.floor(Math.random() * 4);
+        Snek.rotation = Math.floor(Math.random() * 4);
         this.snek = this.createSnake(this.field);
-        this.createEventListeners();
+        this.createKeyboardEvents();
+        Snek.moveInterval = this.createMoveInterval();
         this.drawField(size);
         console.table(this.field);
     }
-    Snake.prototype.createField = function (size) {
+    Snek.prototype.createField = function (size) {
         var field = [];
         for (var i = 0; i < size; i++) {
             field[i] = [];
@@ -19,37 +20,42 @@ var Snake = /** @class */ (function () {
         console.table(field.length);
         return field;
     };
-    Snake.prototype.createSnake = function (field) {
+    Snek.prototype.createSnake = function (field) {
         var x = Math.floor(Math.random() * (field[0].length - 10)) + 5; // make sure snek does not spawn in a wall
         var y = Math.floor(Math.random() * (field.length - 10)) + 5; // make sure snek does not spawn in a wall
         var snek = [[x, y]];
         field[y][x] = -1;
         return snek;
     };
-    Snake.prototype.createEventListeners = function () {
+    Snek.prototype.createKeyboardEvents = function () {
         window.onkeydown = function (e) {
             switch (e.code) {
                 case "Space":
-                    Snake.startGame();
+                    Snek.startGame();
                     break;
                 case "ArrowUp":
-                    Snake.rotation = 0;
+                    Snek.rotation = 0;
                     break;
                 case "ArrowDown":
-                    Snake.rotation = 2;
+                    Snek.rotation = 2;
                     break;
                 case "ArrowRight":
-                    Snake.rotation = 1;
+                    Snek.rotation = 1;
                     break;
                 case "ArrowLeft":
-                    Snake.rotation = 3;
+                    Snek.rotation = 3;
                     break;
                 default:
                     return;
             }
         };
     };
-    Snake.prototype.drawField = function (size) {
+    Snek.prototype.createMoveInterval = function () {
+        var moveInterval = setInterval(function () {
+        }, 10);
+        return moveInterval;
+    };
+    Snek.prototype.drawField = function (size) {
         var w = window.innerWidth;
         var cellSize = Math.floor((w / 2) / size);
         var container = document.createElement("main");
@@ -74,9 +80,9 @@ var Snake = /** @class */ (function () {
         container.appendChild(table);
         document.body.appendChild(container);
     };
-    Snake.startGame = function () {
+    Snek.startGame = function () {
         console.log("Start");
     };
-    return Snake;
+    return Snek;
 }());
-var game = new Snake(20);
+var game = new Snek(20);
