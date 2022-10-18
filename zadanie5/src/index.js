@@ -1,7 +1,10 @@
 var Snake = /** @class */ (function () {
     function Snake(size) {
         this.field = this.createField(size);
+        this.rotation = Math.floor(Math.random() * 4);
+        this.snek = this.createSnake(this.field);
         this.drawField(size);
+        console.table(this.field);
     }
     Snake.prototype.createField = function (size) {
         var field = [];
@@ -39,6 +42,13 @@ var Snake = /** @class */ (function () {
         }
         container.appendChild(table);
         document.body.appendChild(container);
+    };
+    Snake.prototype.createSnake = function (field) {
+        var x = Math.floor(Math.random() * (field[0].length - 10)) + 5; // make sure snek does not spawn in a wall
+        var y = Math.floor(Math.random() * (field.length - 10)) + 5; // make sure snek does not spawn in a wall
+        var snek = [[x, y]];
+        field[y][x] = -1;
+        return snek;
     };
     return Snake;
 }());

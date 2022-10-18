@@ -1,8 +1,13 @@
 class Snake {
     field: number[][]
+    snek: number[][]
+    rotation: number
     constructor(size: number) {
         this.field = this.createField(size)
+        this.rotation = Math.floor(Math.random() * 4)
+        this.snek = this.createSnake(this.field)
         this.drawField(size)
+        console.table(this.field)
     }
 
     createField(size: number) {
@@ -41,6 +46,14 @@ class Snake {
         }
         container.appendChild(table)
         document.body.appendChild(container)
+    }
+
+    createSnake(field: number[][]) {
+        let x = Math.floor(Math.random() * (field[0].length - 10)) + 5 // make sure snek does not spawn in a wall
+        let y = Math.floor(Math.random() * (field.length - 10)) + 5 // make sure snek does not spawn in a wall
+        let snek = [[x, y]]
+        field[y][x] = -1
+        return snek
     }
 }
 
