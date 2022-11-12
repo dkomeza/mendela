@@ -1,13 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <script src="./src/index.js"></script>
-</head>
-<body>
-    
-</body>
+    <script defer src="./src/index.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        min-height: 100vh;
+      }
+
+      table {
+        border-spacing: 0;
+        border: 8px solid red;
+        border-radius: 8px;
+        position: relative;
+      }
+
+      td {
+        background-size: contain !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+      }
+
+      .dark {
+        background: green;
+      }
+      .light {
+        background: lightgreen;
+      }
+      .snek {
+        background-image: url("./assets/straight.png");
+      }
+      .food {
+        background-image: url("./assets/apple.png");
+      }
+
+      .pear {
+        background-image: url("./assets/pear.png");
+      }
+
+      .head {
+        background-image: url("./assets/head.png");
+      }
+
+      .tail {
+        background-image: url("./assets/tail.png");
+      }
+
+      .bend {
+        background-image: url("./assets/bend.png");
+      }
+
+      .portal {
+        background-color: blue;
+      }
+
+      .portal-end {
+        background-color: purple;
+      }
+
+      .up {
+        transform: rotate(0deg);
+      }
+
+      .down {
+        transform: rotate(180deg);
+      }
+
+      .left {
+        transform: rotate(270deg);
+      }
+
+      .right {
+        transform: rotate(90deg);
+      }
+    </style>
+  </head>
+  <body></body>
 </html>
