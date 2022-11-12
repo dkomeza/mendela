@@ -27,17 +27,63 @@
         position: relative;
       }
 
+      td {
+        background-size: contain !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+      }
+
       .dark {
-        background-color: green;
+        background: green;
       }
       .light {
-        background-color: lightgreen;
+        background: lightgreen;
       }
       .snek {
-        background-color: black;
+        background-image: url("./assets/straight.png");
       }
       .food {
-        background-color: red;
+        background-image: url("./assets/apple.png");
+      }
+
+      .pear {
+        background-image: url("./assets/pear.png");
+      }
+
+      .head {
+        background-image: url("./assets/head.png");
+      }
+
+      .tail {
+        background-image: url("./assets/tail.png");
+      }
+
+      .bend {
+        background-image: url("./assets/bend.png");
+      }
+
+      .portal {
+        background-color: blue;
+      }
+
+      .portal-end {
+        background-color: purple;
+      }
+
+      .up {
+        transform: rotate(0deg);
+      }
+
+      .down {
+        transform: rotate(180deg);
+      }
+
+      .left {
+        transform: rotate(270deg);
+      }
+
+      .right {
+        transform: rotate(90deg);
       }
     </style>
   </head>
