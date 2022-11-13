@@ -179,6 +179,10 @@ var Snek = /** @class */ (function () {
             field[newTile[0]][newTile[1]] === -1) {
             clearInterval(Snek.moveInterval);
             alert("Game Over");
+            if (document.querySelector(".form")) {
+                // @ts-expect-error
+                document.querySelector(".form").style.display = "block";
+            }
             return;
         }
         else if (field[newTile[0]][newTile[1]] === 0) {
@@ -408,6 +412,10 @@ var Snek = /** @class */ (function () {
         clearInterval(Snek.portalInterval);
         if (document.getElementsByClassName("container")[0]) {
             document.getElementsByClassName("container")[0].remove();
+        }
+        if (document.querySelector(".form")) {
+            // @ts-expect-error
+            document.querySelector(".form").style.display = "none";
         }
     };
     return Snek;
