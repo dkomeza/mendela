@@ -9,6 +9,7 @@ class Snek {
   deletePortal: boolean = false;
   probability: number = 0;
   static rotation: number;
+  static previousRotation: number = -1;
   static moveInterval: number;
   static portalInterval: number;
   static interval: number;
@@ -45,7 +46,6 @@ class Snek {
     let x = Math.floor(Math.random() * (field[0].length - 10)) + 5; // make sure snek does not spawn in a wall
     let y = Math.floor(Math.random() * (field.length - 10)) + 5; // make sure snek does not spawn in a wall
     let snek = [[x, y]];
-    // field[y][x] = -1;
     return snek;
   }
 
@@ -53,22 +53,22 @@ class Snek {
     window.onkeydown = function (e) {
       switch (e.code) {
         case "ArrowUp":
-          if (Snek.rotation !== 2) {
+          if (Snek.previousRotation !== 2) {
             Snek.rotation = 0;
           }
           break;
         case "ArrowDown":
-          if (Snek.rotation !== 0) {
+          if (Snek.previousRotation !== 0) {
             Snek.rotation = 2;
           }
           break;
         case "ArrowRight":
-          if (Snek.rotation !== 3) {
+          if (Snek.previousRotation !== 3) {
             Snek.rotation = 1;
           }
           break;
         case "ArrowLeft":
-          if (Snek.rotation !== 1) {
+          if (Snek.previousRotation !== 1) {
             Snek.rotation = 3;
           }
           break;
@@ -99,7 +99,7 @@ class Snek {
 
   createPortalInterval() {
     Snek.portalInterval = setInterval(() => {
-      if (Math.random() < 0.25 && !this.activePortal) {
+      if (Math.random() < 1 && !this.activePortal) {
         let x1 = Math.floor(Math.random() * (this.field[0].length - 4)) + 2;
         let y1 = Math.floor(Math.random() * (this.field.length - 4)) + 2;
         let x2 = Math.floor(Math.random() * (this.field[0].length - 4)) + 2;
@@ -127,7 +127,7 @@ class Snek {
           this.deletePortal = false;
         }
       }
-    }, 10000);
+    }, 1000);
   }
 
   drawField(size: number) {
@@ -159,6 +159,7 @@ class Snek {
   moveSnake(field: number[][], snek: number[][], rotation: number) {
     let cells = document.querySelectorAll(".cell");
     let newTile: number[] = [];
+    Snek.previousRotation = Snek.rotation;
     if (this.teleport) {
       newTile = this.endPortal;
       this.startPortal = [];
@@ -280,6 +281,21 @@ class Snek {
 
   colorSnake(snek: number[][]) {
     let cells = document.querySelectorAll(".cell");
+    let tailClass: any;
+    if (document.getElementsByClassName("tail")[0]) {
+      let helper = document.getElementsByClassName("tail")[0].classList;
+      for (let i = 0; i < helper.length; i++) {
+        if (
+          helper[i] !== "cell" &&
+          helper[i] !== "dark" &&
+          helper[i] !== "light" &&
+          helper[i] !== "tail" &&
+          helper[i] !== "snek"
+        ) {
+          tailClass = helper[i];
+        }
+      }
+    }
     cells.forEach((cell) => {
       cell.classList.remove("head");
       cell.classList.remove("tail");
@@ -299,18 +315,42 @@ class Snek {
         } else if (i === snek.length - 1) {
           let index = snek[i][0] * this.field.length + snek[i][1];
           cells[index].classList.add("tail");
-          cells[index].classList.add(
-            this.getRotationName(this.getRotation(snek[i - 1], snek[i]))
-          );
+          if (cells[index].classList.contains("portal")) {
+            let vector = [
+              snek[i][0] - snek[i - 1][0],
+              snek[i][1] - snek[i - 1][1],
+            ];
+            if (vector[0] * vector[1] === 0) {
+              cells[index].classList.add(
+                this.getRotationName(this.getRotation(snek[i - 1], snek[i]))
+              );
+            } else {
+              cells[index].classList.add(tailClass);
+            }
+          } else {
+            cells[index].classList.add(
+              this.getRotationName(this.getRotation(snek[i - 1], snek[i]))
+            );
+          }
         } else {
           if (
             cells[
               snek[i][0] * this.field.length + snek[i][1]
             ].classList.contains("portal")
           ) {
-            cells[snek[i][0] * this.field.length + snek[i][1]].classList.add(
-              this.getRotationName(this.getRotation(snek[i], snek[i + 1]))
-            );
+            let vector = [
+              snek[i + 1][0] - snek[i][0],
+              snek[i + 1][1] - snek[i][1],
+            ];
+            if (vector[0] * vector[1] === 0) {
+              cells[snek[i][0] * this.field.length + snek[i][1]].classList.add(
+                this.getRotationName(this.getRotation(snek[i], snek[i + 1]))
+              );
+            } else {
+              cells[snek[i][0] * this.field.length + snek[i][1]].classList.add(
+                this.getRotationName(this.getRotation(snek[i - 1], snek[i]))
+              );
+            }
           } else {
             this.getBend(snek[i + 1], snek[i], snek[i - 1]);
           }
