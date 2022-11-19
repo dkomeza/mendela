@@ -8,6 +8,7 @@ class Snek {
   endPortal: number[] = [];
   deletePortal: boolean = false;
   probability: number = 0;
+  winningLength: number = 0;
   static rotation: number;
   static previousRotation: number = -1;
   static moveInterval: number;
@@ -20,6 +21,7 @@ class Snek {
     this.field = this.createField(size);
     Snek.rotation = Math.floor(Math.random() * 4);
     this.snek = this.createSnake(this.field);
+    this.winningLength = size * size;
     this.createKeyboardEvents();
     Snek.interval = 500;
     this.drawField(size);
@@ -188,7 +190,7 @@ class Snek {
       field[newTile[0]][newTile[1]] === -1
     ) {
       clearInterval(Snek.moveInterval);
-      alert("Game Over");
+      this.createAlert("Game Over", "red");
       if (document.querySelector(".form")) {
         // @ts-expect-error
         document.querySelector(".form").style.display = "block";
@@ -207,7 +209,9 @@ class Snek {
       snek.unshift(newTile);
       let index = newTile[0] * this.field.length + newTile[1];
       cells[index].classList.add("snek");
-      this.createFood();
+      if (this.snek.length <= this.winningLength - 1) {
+        this.createFood();
+      }
       cells[index].classList.remove("food");
       if (Snek.interval > 300) {
         Snek.interval -= 10;
@@ -277,6 +281,15 @@ class Snek {
     }
     field[newTile[0]][newTile[1]] = -1;
     this.colorSnake(snek);
+    if (this.snek.length === this.winningLength) {
+      clearInterval(Snek.moveInterval);
+      clearInterval(Snek.portalInterval);
+      this.createAlert("You win", "green");
+      if (document.querySelector(".form")) {
+        // @ts-expect-error
+        document.querySelector(".form").style.display = "block";
+      }
+    }
   }
 
   colorSnake(snek: number[][]) {
@@ -470,6 +483,16 @@ class Snek {
       document.querySelector(".form").style.display = "none";
     }
   }
+  createAlert(text: string, color: string) {
+    let alert = document.createElement("div");
+    alert.classList.add("alert");
+    alert.classList.add(color);
+    alert.innerText = text;
+    document.body.appendChild(alert);
+    setTimeout(() => {
+      alert.remove();
+    }, 3000);
+  }
 }
 
 function createForm() {
@@ -478,7 +501,7 @@ function createForm() {
   let inputWrapper = document.createElement("p");
   let input = document.createElement("input");
   input.setAttribute("type", "number");
-  input.setAttribute("min", "8");
+  input.setAttribute("min", "6");
   input.setAttribute("max", "20");
   input.setAttribute("value", "10");
   let inputLabel = document.createElement("label");
@@ -506,7 +529,7 @@ function createForm() {
     let cells = parseInt(input.value);
     let pear = pearInput.checked;
     let portal = portalInput.checked;
-    if (cells >= 8 && cells <= 20) {
+    if (cells >= 6 && cells <= 20) {
       let game = new Snek(cells, pear, portal);
       game.startGame();
     }

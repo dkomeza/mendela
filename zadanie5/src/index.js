@@ -7,10 +7,12 @@ var Snek = /** @class */ (function () {
         this.endPortal = [];
         this.deletePortal = false;
         this.probability = 0;
+        this.winningLength = 0;
         this.destroyGame();
         this.field = this.createField(size);
         Snek.rotation = Math.floor(Math.random() * 4);
         this.snek = this.createSnake(this.field);
+        this.winningLength = size * size;
         this.createKeyboardEvents();
         Snek.interval = 500;
         this.drawField(size);
@@ -178,7 +180,7 @@ var Snek = /** @class */ (function () {
             newTile[1] >= field.length ||
             field[newTile[0]][newTile[1]] === -1) {
             clearInterval(Snek.moveInterval);
-            alert("Game Over");
+            this.createAlert("Game Over", "red");
             if (document.querySelector(".form")) {
                 // @ts-expect-error
                 document.querySelector(".form").style.display = "block";
@@ -199,7 +201,9 @@ var Snek = /** @class */ (function () {
             snek.unshift(newTile);
             var index = newTile[0] * this.field.length + newTile[1];
             cells[index].classList.add("snek");
-            this.createFood();
+            if (this.snek.length <= this.winningLength - 1) {
+                this.createFood();
+            }
             cells[index].classList.remove("food");
             if (Snek.interval > 300) {
                 Snek.interval -= 10;
@@ -269,6 +273,15 @@ var Snek = /** @class */ (function () {
         }
         field[newTile[0]][newTile[1]] = -1;
         this.colorSnake(snek);
+        if (this.snek.length === this.winningLength) {
+            clearInterval(Snek.moveInterval);
+            clearInterval(Snek.portalInterval);
+            this.createAlert("You win", "green");
+            if (document.querySelector(".form")) {
+                // @ts-expect-error
+                document.querySelector(".form").style.display = "block";
+            }
+        }
     };
     Snek.prototype.colorSnake = function (snek) {
         var cells = document.querySelectorAll(".cell");
@@ -454,6 +467,16 @@ var Snek = /** @class */ (function () {
             document.querySelector(".form").style.display = "none";
         }
     };
+    Snek.prototype.createAlert = function (text, color) {
+        var alert = document.createElement("div");
+        alert.classList.add("alert");
+        alert.classList.add(color);
+        alert.innerText = text;
+        document.body.appendChild(alert);
+        setTimeout(function () {
+            alert.remove();
+        }, 3000);
+    };
     Snek.previousRotation = -1;
     return Snek;
 }());
@@ -463,7 +486,7 @@ function createForm() {
     var inputWrapper = document.createElement("p");
     var input = document.createElement("input");
     input.setAttribute("type", "number");
-    input.setAttribute("min", "8");
+    input.setAttribute("min", "6");
     input.setAttribute("max", "20");
     input.setAttribute("value", "10");
     var inputLabel = document.createElement("label");
@@ -487,7 +510,7 @@ function createForm() {
         var cells = parseInt(input.value);
         var pear = pearInput.checked;
         var portal = portalInput.checked;
-        if (cells >= 8 && cells <= 20) {
+        if (cells >= 6 && cells <= 20) {
             var game = new Snek(cells, pear, portal);
             game.startGame();
         }
