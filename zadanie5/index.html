@@ -34,7 +34,7 @@
       td {
         background-size: contain !important;
         background-position: center !important;
-        background-repeat: no-repeat !important;
+        background-repeat: no-repeat !important;        
       }
 
       .dark {
@@ -100,6 +100,9 @@
         border-radius: 32px;
         font-size: 32px;
         border: 4px solid black;
+        scale: 0;
+        opacity: 1;
+        transition: 0.3s;
       }
 
       .red {
@@ -112,6 +115,37 @@
         color: green;
         border-color: green;
         background-color: rgba(0, 255, 0, 0.4);
+      }
+
+      .form {
+        position: fixed;
+        left: 32px;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: beige;
+        padding: 48px 16px;
+        border-radius: 16px;
+        filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.4));
+        transition: 0.5s;
+      }
+      .form p {
+        margin-bottom: 16px;
+      }
+      .form input {
+        margin-left: 16px;
+        background-color: snow;
+        border: 0;
+        outline: 0;
+        padding: 8px;
+        border-radius: 8px;
+        transition: 0.2s;
+      }
+      .form input[type="number"] {
+        width: 64px;
+      }
+      .form input:focus {
+        scale: 1.05;
+        filter: drop-shadow(0px 0px 6px rgba(0, 68, 255, 0.6));
       }
     </style>
   </head>

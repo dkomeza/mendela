@@ -194,6 +194,12 @@ class Snek {
       if (document.querySelector(".form")) {
         // @ts-expect-error
         document.querySelector(".form").style.display = "block";
+        window.setTimeout(() => {
+          // @ts-expect-error
+          document.querySelector(".form").style.opacity = "1";
+          // @ts-expect-error
+          document.querySelector(".form").style.scale = "1";
+        }, 1);
       }
       return;
     } else if (field[newTile[0]][newTile[1]] === 0) {
@@ -480,7 +486,13 @@ class Snek {
     }
     if (document.querySelector(".form")) {
       // @ts-expect-error
-      document.querySelector(".form").style.display = "none";
+      document.querySelector(".form").style.opacity = "0";
+      // @ts-expect-error
+      document.querySelector(".form").style.scale = "0";
+      window.setTimeout(() => {
+        // @ts-expect-error
+        document.querySelector(".form").style.display = "none";
+      }, 500);
     }
   }
   createAlert(text: string, color: string) {
@@ -490,7 +502,15 @@ class Snek {
     alert.innerText = text;
     document.body.appendChild(alert);
     setTimeout(() => {
-      alert.remove();
+      alert.style.opacity = "1";
+      alert.style.scale = "1";
+    }, 1);
+    setTimeout(() => {
+      alert.style.opacity = "0";
+      alert.style.scale = "0";
+      setTimeout(() => {
+        alert.remove();
+      }, 300);
     }, 3000);
   }
 }
@@ -506,21 +526,21 @@ function createForm() {
   input.setAttribute("value", "10");
   let inputLabel = document.createElement("label");
   inputLabel.innerText = "Cell count (one side)";
-  inputWrapper.append(input, inputLabel);
+  inputWrapper.append(inputLabel, input);
 
   let pearWrapper = document.createElement("p");
   let pearInput = document.createElement("input");
   pearInput.setAttribute("type", "checkbox");
   let pearInputLabel = document.createElement("label");
   pearInputLabel.innerText = "Enable pears? ";
-  pearWrapper.append(pearInput, pearInputLabel);
+  pearWrapper.append(pearInputLabel, pearInput);
 
   let portalWrapper = document.createElement("p");
   let portalInput = document.createElement("input");
   portalInput.setAttribute("type", "checkbox");
   let portalInputLabel = document.createElement("label");
   portalInputLabel.innerText = "Enable portals? ";
-  portalWrapper.append(portalInput, portalInputLabel);
+  portalWrapper.append(portalInputLabel, portalInput);
 
   let button = document.createElement("button");
   button.innerText = "Start";

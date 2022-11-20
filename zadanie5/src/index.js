@@ -184,6 +184,12 @@ var Snek = /** @class */ (function () {
             if (document.querySelector(".form")) {
                 // @ts-expect-error
                 document.querySelector(".form").style.display = "block";
+                window.setTimeout(function () {
+                    // @ts-expect-error
+                    document.querySelector(".form").style.opacity = "1";
+                    // @ts-expect-error
+                    document.querySelector(".form").style.scale = "1";
+                }, 1);
             }
             return;
         }
@@ -464,7 +470,13 @@ var Snek = /** @class */ (function () {
         }
         if (document.querySelector(".form")) {
             // @ts-expect-error
-            document.querySelector(".form").style.display = "none";
+            document.querySelector(".form").style.opacity = "0";
+            // @ts-expect-error
+            document.querySelector(".form").style.scale = "0";
+            window.setTimeout(function () {
+                // @ts-expect-error
+                document.querySelector(".form").style.display = "none";
+            }, 500);
         }
     };
     Snek.prototype.createAlert = function (text, color) {
@@ -474,7 +486,15 @@ var Snek = /** @class */ (function () {
         alert.innerText = text;
         document.body.appendChild(alert);
         setTimeout(function () {
-            alert.remove();
+            alert.style.opacity = "1";
+            alert.style.scale = "1";
+        }, 1);
+        setTimeout(function () {
+            alert.style.opacity = "0";
+            alert.style.scale = "0";
+            setTimeout(function () {
+                alert.remove();
+            }, 300);
         }, 3000);
     };
     Snek.previousRotation = -1;
@@ -491,19 +511,19 @@ function createForm() {
     input.setAttribute("value", "10");
     var inputLabel = document.createElement("label");
     inputLabel.innerText = "Cell count (one side)";
-    inputWrapper.append(input, inputLabel);
+    inputWrapper.append(inputLabel, input);
     var pearWrapper = document.createElement("p");
     var pearInput = document.createElement("input");
     pearInput.setAttribute("type", "checkbox");
     var pearInputLabel = document.createElement("label");
     pearInputLabel.innerText = "Enable pears? ";
-    pearWrapper.append(pearInput, pearInputLabel);
+    pearWrapper.append(pearInputLabel, pearInput);
     var portalWrapper = document.createElement("p");
     var portalInput = document.createElement("input");
     portalInput.setAttribute("type", "checkbox");
     var portalInputLabel = document.createElement("label");
     portalInputLabel.innerText = "Enable portals? ";
-    portalWrapper.append(portalInput, portalInputLabel);
+    portalWrapper.append(portalInputLabel, portalInput);
     var button = document.createElement("button");
     button.innerText = "Start";
     button.onclick = function () {
