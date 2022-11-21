@@ -45,8 +45,8 @@ class Snek {
   }
 
   createSnake(field: number[][]) {
-    let x = Math.floor(Math.random() * (field[0].length - 10)) + 5; // make sure snek does not spawn in a wall
-    let y = Math.floor(Math.random() * (field.length - 10)) + 5; // make sure snek does not spawn in a wall
+    let x = Math.floor(Math.random() * (field[0].length - 2)) + 1; // make sure snek does not spawn in a wall
+    let y = Math.floor(Math.random() * (field.length - 2)) + 1; // make sure snek does not spawn in a wall
     let snek = [[x, y]];
     return snek;
   }
@@ -294,6 +294,12 @@ class Snek {
       if (document.querySelector(".form")) {
         // @ts-expect-error
         document.querySelector(".form").style.display = "block";
+        window.setTimeout(() => {
+          // @ts-expect-error
+          document.querySelector(".form").style.opacity = "1";
+          // @ts-expect-error
+          document.querySelector(".form").style.scale = "1";
+        }, 1);
       }
     }
   }

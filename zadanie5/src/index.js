@@ -36,8 +36,8 @@ var Snek = /** @class */ (function () {
         return field;
     };
     Snek.prototype.createSnake = function (field) {
-        var x = Math.floor(Math.random() * (field[0].length - 10)) + 5; // make sure snek does not spawn in a wall
-        var y = Math.floor(Math.random() * (field.length - 10)) + 5; // make sure snek does not spawn in a wall
+        var x = Math.floor(Math.random() * (field[0].length - 2)) + 1; // make sure snek does not spawn in a wall
+        var y = Math.floor(Math.random() * (field.length - 2)) + 1; // make sure snek does not spawn in a wall
         var snek = [[x, y]];
         return snek;
     };
@@ -286,6 +286,12 @@ var Snek = /** @class */ (function () {
             if (document.querySelector(".form")) {
                 // @ts-expect-error
                 document.querySelector(".form").style.display = "block";
+                window.setTimeout(function () {
+                    // @ts-expect-error
+                    document.querySelector(".form").style.opacity = "1";
+                    // @ts-expect-error
+                    document.querySelector(".form").style.scale = "1";
+                }, 1);
             }
         }
     };
