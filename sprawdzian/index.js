@@ -17,15 +17,14 @@ function startGame() {
   createBasket();
   handleKeyboard();
   createEggs();
-  let i = 0
+  let i = 0;
   let interval = setInterval(() => {
     fallingEggs();
-    i++
+    i++;
     if (i >= 2) {
-      clearInterval(interval)
+      clearInterval(interval);
     }
-  }, 500)
-  
+  }, 750);
 }
 
 function createBasket() {
@@ -60,13 +59,10 @@ function handleKeyboard() {
     }
     basket.style.top = `${basketPosition[1] * 300 + 180}px`;
     basket.style.left = `${basketPosition[0] * 150 + 100}px`;
-    console.log(basketPosition);
   });
 }
 
 function createEggs() {
-  eggsDiv = document.createElement("div");
-  eggsDiv.classList.add("eggsDiv");
   for (let i = 0; i < 4; i++) {
     eggs[i] = [];
     let offset;
@@ -93,7 +89,6 @@ function createEggs() {
     }
     container.append(eggContainer);
   }
-  console.table(eggs);
 }
 
 function fallingEggs() {
@@ -116,11 +111,11 @@ function fallingEggs() {
       cought = false;
       eggCounter.innerText = `Cought eggs: ${eggCount}`;
       lastEgg.classList.remove("active");
-      lastEgg = null
+      lastEgg = null;
     }
     if (fallen) {
       lastEgg.classList.remove("active");
-      lastEgg = null
+      lastEgg = null;
       lives--;
       fallen = false;
       liveCounter.innerText = `Remaining lives: ${lives}`;
@@ -137,11 +132,11 @@ function fallingEggs() {
     currentEgg.classList.add("active");
     if (eggPosition >= 4) {
       lastEgg = currentEgg;
-      lastIndex = index
+      lastIndex = index;
       eggPosition = 0;
       index = Math.floor(Math.random() * 4);
     } else {
       eggPosition++;
     }
-  }, 1000);
+  }, 10000);
 }
