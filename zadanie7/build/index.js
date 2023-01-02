@@ -10,11 +10,15 @@ function startGame() {
     document.body.appendChild(canvas);
     const track = new Track(canvas);
     track.drawField();
-    const player = new Player("red", canvas, 1);
-    player.createPlayer();
-    setInterval(() => {
-        player.tick();
-    }, 1);
+    const playerList = [];
+    for (let i = 1; i < 5; i++) {
+        const player = new Player("red", canvas, i);
+        player.createPlayer();
+        setInterval(() => {
+            player.tick();
+        }, 1);
+        playerList.push(player);
+    }
 }
 // function gameChoice() {
 //   const dialogContainer = document.createElement("div");

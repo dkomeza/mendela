@@ -1,13 +1,14 @@
 class Player {
     constructor(color, canvas, player) {
         this.angle = 0;
-        this.speed = 0;
+        this.speed = 2;
+        this.currentLap = 0;
         this.color = color;
         this.width = canvas.width;
         this.height = canvas.height;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
-        this.position = [this.width / 2, this.height - 25];
+        this.position = [this.width / 2 + 1, this.height - 60 + player * 10];
         this.activeKeys = {
             left: false,
             right: false,
@@ -38,6 +39,7 @@ class Player {
             this.angle += 2;
         }
         this.movePlayer();
+        this.checkFinishLine();
     }
     createControls(player) {
         switch (player) {
@@ -45,11 +47,9 @@ class Player {
                 document.addEventListener("keydown", (e) => {
                     if (e.key === "ArrowLeft") {
                         this.activeKeys.left = true;
-                        console.log(this.activeKeys.left);
                     }
                     if (e.key === "ArrowRight") {
                         this.activeKeys.right = true;
-                        console.log(this.activeKeys.left);
                     }
                     if (e.key === "Escape") {
                         this.speed ? (this.speed = 0) : (this.speed = 2);
@@ -64,6 +64,14 @@ class Player {
                     }
                 });
                 break;
+        }
+    }
+    checkFinishLine() {
+        if (this.position[0] >= this.width / 2 - 1 &&
+            this.position[0] < this.width / 2 + 1 &&
+            this.position[1] >= this.height - 75 &&
+            this.position[1] < this.height) {
+            console.log("finish");
         }
     }
     deg2rad(deg) {

@@ -11,15 +11,16 @@ class Player {
   height: number;
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  speed: number = 0;
+  speed: number = 2;
   activeKeys: activeKeys;
+  currentLap: number = 0;
   constructor(color: string, canvas: HTMLCanvasElement, player: number) {
     this.color = color;
     this.width = canvas.width;
     this.height = canvas.height;
     this.canvas = canvas;
     this.context = canvas.getContext("2d")!;
-    this.position = [this.width / 2, this.height - 25];
+    this.position = [this.width / 2 + 1, this.height - 60 + player * 10];
     this.activeKeys = {
       left: false,
       right: false,
@@ -51,6 +52,7 @@ class Player {
       this.angle += 2;
     }
     this.movePlayer();
+    this.checkFinishLine();
   }
 
   createControls(player: number) {
@@ -59,11 +61,9 @@ class Player {
         document.addEventListener("keydown", (e) => {
           if (e.key === "ArrowLeft") {
             this.activeKeys.left = true;
-            console.log(this.activeKeys.left);
           }
           if (e.key === "ArrowRight") {
             this.activeKeys.right = true;
-            console.log(this.activeKeys.left);
           }
           if (e.key === "Escape") {
             this.speed ? (this.speed = 0) : (this.speed = 2);
@@ -78,6 +78,17 @@ class Player {
           }
         });
         break;
+    }
+  }
+
+  checkFinishLine() {
+    if (
+      this.position[0] >= this.width / 2 - 1 &&
+      this.position[0] < this.width / 2 + 1 &&
+      this.position[1] >= this.height - 75 &&
+      this.position[1] < this.height
+    ) {
+      console.log("finish");
     }
   }
 
