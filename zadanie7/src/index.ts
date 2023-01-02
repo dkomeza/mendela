@@ -12,8 +12,11 @@ function startGame() {
   document.body.appendChild(canvas);
   const track = new Track(canvas);
   track.drawField();
-  const player = new Player("red", canvas);
+  const player = new Player("red", canvas, 1);
   player.createPlayer();
+  setInterval(() => {
+    player.tick();
+  }, 1);
 }
 
 // function gameChoice() {
