@@ -11,12 +11,11 @@ function startGame() {
     const track = new Track(canvas);
     track.drawField();
     const playerList = [];
-    for (let i = 1; i < 5; i++) {
-        const player = new Player("red", canvas, i);
+    for (let i = 1; i < 2; i++) {
+        const player = new Player("red", canvas, i, 2);
         player.createPlayer();
-        setInterval(() => {
-            player.tick();
-        }, 1);
+        player.createControls(i);
+        player.createInterval();
         playerList.push(player);
     }
 }
