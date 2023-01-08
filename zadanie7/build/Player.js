@@ -1,10 +1,11 @@
 class Player {
-    constructor(color, canvas, player, laps) {
+    constructor(canvas, player, laps) {
         this.angle = 0;
-        this.speed = 2;
-        this.currentLap = 0;
-        this.interval = 0;
-        this.color = color;
+        this.speed = 120;
+        this.currentLap = 1;
+        this.tracks = [];
+        this.finishLine = false;
+        this.color = this.getColor(player, 1);
         this.width = canvas.width;
         this.height = canvas.height;
         this.canvas = canvas;
@@ -15,44 +16,106 @@ class Player {
             right: false,
         };
         this.laps = laps;
+        this.player = player;
+    }
+    getColor(player, alpha) {
+        switch (player) {
+            case 1:
+                return `rgba(255, 0, 0, ${alpha})`;
+            case 2:
+                return `rgba(0, 0, 255, ${alpha})`;
+            case 3:
+                return `rgba(0, 255, 0, ${alpha})`;
+            case 4:
+                return `rgba(255, 255, 0, ${alpha})`;
+            default:
+                return "black";
+        }
+    }
+    getImage(player) {
+        switch (player) {
+            case 1:
+                return "./assets/red.png";
+            case 2:
+                return "./assets/blue.png";
+            case 3:
+                return "./assets/green.png";
+            case 4:
+                return "./assets/yellow.png";
+            default:
+                return "black";
+        }
     }
     createPlayer() {
+        this.tracks.push([
+            this.position[0],
+            this.position[1],
+            this.position[0] + 5,
+            this.position[1],
+        ]);
+        this.position[0] += 5;
+    }
+    movePlayer(delta) {
+        const finalSpeed = this.speed * (delta / 1000);
+        const currentPosition = [this.position[0], this.position[1]];
+        this.position[0] += finalSpeed * Math.cos(this.deg2rad(this.angle));
+        this.position[1] += finalSpeed * Math.sin(this.deg2rad(this.angle));
+        this.tracks.unshift([
+            currentPosition[0],
+            currentPosition[1],
+            this.position[0],
+            this.position[1],
+        ]);
+        if (this.tracks.length > 400) {
+            this.tracks.pop();
+        }
+    }
+    fadePlayer(dead = false) {
         this.context.strokeStyle = this.color;
-        this.context.lineWidth = 5;
-        this.context.beginPath();
-        this.context.moveTo(this.position[0], this.position[1]);
-        this.context.lineTo(this.position[0] + 5, this.position[1]);
-        this.context.closePath();
-        this.context.stroke();
+        this.context.lineWidth = 3;
+        if (dead) {
+            for (let i = 0; i < this.tracks.length; i++) {
+                const alpha = (this.tracks.length - i) / this.tracks.length;
+                this.context.strokeStyle = this.getColor(this.player, alpha);
+                this.context.beginPath();
+                this.context.moveTo(this.tracks[i][0], this.tracks[i][1]);
+                this.context.lineTo(this.tracks[i][2], this.tracks[i][3]);
+                this.context.stroke();
+            }
+        }
+        else {
+            for (let i = 0; i < this.tracks.length; i++) {
+                if (i > this.tracks.length / 2) {
+                    const alpha = (this.tracks.length - i) / (this.tracks.length / 2);
+                    this.context.strokeStyle = this.getColor(this.player, alpha);
+                }
+                else {
+                    this.context.strokeStyle = this.getColor(this.player, 1);
+                }
+                this.context.beginPath();
+                this.context.moveTo(this.tracks[i][0], this.tracks[i][1]);
+                this.context.lineTo(this.tracks[i][2], this.tracks[i][3]);
+                this.context.stroke();
+            }
+        }
+        this.context.save();
+        this.context.translate(this.position[0], this.position[1]);
+        this.context.rotate(this.deg2rad(this.angle + 90));
+        const image = new Image();
+        image.src = this.getImage(this.player);
+        this.context.drawImage(image, -30, -15, 60, 30);
+        this.context.restore();
     }
-    movePlayer() {
-        this.context.beginPath();
-        this.context.moveTo(this.position[0], this.position[1]);
-        this.position[0] += this.speed * Math.cos(this.deg2rad(this.angle));
-        this.position[1] += this.speed * Math.sin(this.deg2rad(this.angle));
-        this.context.lineTo(this.position[0], this.position[1]);
-        this.context.closePath();
-        this.context.stroke();
-    }
-    createInterval() {
-        this.interval = setInterval(() => {
-            this.tick();
-        }, 1000 / 60);
-    }
-    tick() {
+    tick(delta) {
         if (this.activeKeys.left) {
-            this.angle -= 2;
+            this.angle -= 1;
         }
         else if (this.activeKeys.right) {
-            this.angle += 2;
+            this.angle += 1;
         }
-        this.movePlayer();
-        if (this.checkCollision()) {
-            this.speed = 0;
-            clearInterval(this.interval);
-            console.log("Kolizja");
-        }
-        this.checkFinishLine();
+        this.movePlayer(delta);
+        this.fadePlayer();
+        this.updateCurrentLap();
     }
     createControls(player) {
         switch (player) {
@@ -77,27 +140,55 @@ class Player {
                     }
                 });
                 break;
+            case 2:
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "a") {
+                        this.activeKeys.left = true;
+                    }
+                    if (e.key === "d") {
+                        this.activeKeys.right = true;
+                    }
+                    if (e.key === "Escape") {
+                        this.speed ? (this.speed = 0) : (this.speed = 2);
+                    }
+                });
+                document.addEventListener("keyup", (e) => {
+                    if (e.key === "a") {
+                        this.activeKeys.left = false;
+                    }
+                    if (e.key === "d") {
+                        this.activeKeys.right = false;
+                    }
+                });
+                break;
         }
     }
     checkFinishLine() {
-        if (this.position[0] >= this.width / 2 - 1 &&
-            this.position[0] < this.width / 2 + 1 &&
-            this.position[1] >= this.height - 75 &&
+        if (this.position[1] >= this.height - this.height / 4 &&
             this.position[1] < this.height) {
-            if (this.currentLap === this.laps) {
-                this.context.fillStyle = "green";
-                this.context.fillRect(this.width / 2 - 50, this.height / 2 - 20, 100, 40);
-                this.context.font = "20px Arial black";
-                this.context.textAlign = "center";
-                this.context.fillStyle = "black";
-                this.context.fillText(`Winner!`, this.width / 2, this.height / 2);
-                this.speed = 0;
-                clearInterval(this.interval);
-                return;
+            if (this.finishLine &&
+                this.position[0] >= this.width / 2 - 1 &&
+                this.position[0] < this.width / 2) {
+                if (this.currentLap === this.laps) {
+                    this.context.fillStyle = "green";
+                    this.context.fillRect(this.width / 2 - 50, this.height / 2 - 20, 100, 40);
+                    this.context.font = "20px Arial black";
+                    this.context.textAlign = "center";
+                    this.context.fillStyle = "black";
+                    this.context.fillText(`Winner!`, this.width / 2, this.height / 2);
+                    this.speed = 0;
+                    return true;
+                }
+                this.finishLine = false;
+                this.currentLap++;
+                this.updateCurrentLap();
             }
-            this.currentLap++;
-            this.updateCurrentLap();
+            else if (this.position[0] >= this.width / 2 + 20 && !this.finishLine) {
+                console.log("Enabled finish line");
+                this.finishLine = true;
+            }
         }
+        return false;
     }
     updateCurrentLap() {
         this.context.fillStyle = "green";
