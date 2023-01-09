@@ -10,8 +10,8 @@ let deadPlayers = [];
 let time = 0;
 function startGame() {
     const canvas = document.createElement("canvas");
-    canvas.width = 500;
-    canvas.height = 300;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
     track = new Track(canvas);
     for (let i = 1; i < 5; i++) {

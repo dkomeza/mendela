@@ -1,7 +1,9 @@
 class Track {
     constructor(canvas) {
-        this.width = canvas.width;
-        this.height = canvas.height;
+        this.height = window.innerHeight;
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.width = window.innerWidth;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
     }
@@ -29,7 +31,7 @@ class Track {
     }
     drawStraight() {
         this.context.fillStyle = "#964B00";
-        this.context.fillRect(this.height / 2, 0, this.width - this.height, this.height);
+        this.context.fillRect(this.height / 2 - 1, 0, this.width - this.height + 2, this.height);
     }
     drawCenter() {
         this.context.fillStyle = "green";

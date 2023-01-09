@@ -4,8 +4,10 @@ class Track {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
   constructor(canvas: HTMLCanvasElement) {
-    this.width = canvas.width;
-    this.height = canvas.height;
+    this.height = window.innerHeight;
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.width = window.innerWidth;
     this.canvas = canvas;
     this.context = canvas.getContext("2d")!;
   }
@@ -51,9 +53,9 @@ class Track {
   drawStraight() {
     this.context.fillStyle = "#964B00";
     this.context.fillRect(
-      this.height / 2,
+      this.height / 2 - 1,
       0,
-      this.width - this.height,
+      this.width - this.height + 2,
       this.height
     );
   }

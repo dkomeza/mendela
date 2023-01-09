@@ -25,6 +25,7 @@ class Player {
     this.canvas = canvas;
     this.context = canvas.getContext("2d")!;
     this.position = [this.width / 2 - 2, this.height - 60 + player * 10];
+    this.speed = (canvas.width + canvas.height) / 10;
     this.activeKeys = {
       left: false,
       right: false,
@@ -91,7 +92,7 @@ class Player {
 
   fadePlayer(dead: boolean = false) {
     this.context.strokeStyle = this.color;
-    this.context.lineWidth = 3;
+    this.context.lineWidth = (this.width + this.height) / 360;
     if (dead) {
       for (let i = 0; i < this.tracks.length; i++) {
         const alpha = (this.tracks.length - i) / this.tracks.length;
@@ -120,15 +121,23 @@ class Player {
     this.context.rotate(this.deg2rad(this.angle + 90));
     const image = new Image();
     image.src = this.getImage(this.player);
-    this.context.drawImage(image, -30, -15, 60, 30);
+    const imgWidth = this.canvas.width / 10;
+    const imgHeight = this.canvas.height / 10;
+    this.context.drawImage(
+      image,
+      -imgWidth / 2,
+      -imgHeight / 2,
+      imgWidth,
+      imgHeight
+    );
     this.context.restore();
   }
 
   tick(delta: number) {
     if (this.activeKeys.left) {
-      this.angle -= 1;
+      this.angle -= 125 * (delta / 1000);
     } else if (this.activeKeys.right) {
-      this.angle += 1;
+      this.angle += 125 * (delta / 1000);
     }
     this.movePlayer(delta);
     this.fadePlayer();
@@ -139,42 +148,54 @@ class Player {
     switch (player) {
       case 1:
         document.addEventListener("keydown", (e) => {
-          if (e.key === "ArrowLeft") {
+          if (e.key === "a") {
             this.activeKeys.left = true;
           }
-          if (e.key === "ArrowRight") {
+          if (e.key === "d") {
             this.activeKeys.right = true;
-          }
-          if (e.key === "Escape") {
-            this.speed ? (this.speed = 0) : (this.speed = 2);
           }
         });
         document.addEventListener("keyup", (e) => {
-          if (e.key === "ArrowLeft") {
+          if (e.key === "a") {
             this.activeKeys.left = false;
           }
-          if (e.key === "ArrowRight") {
+          if (e.key === "d") {
             this.activeKeys.right = false;
           }
         });
         break;
       case 2:
         document.addEventListener("keydown", (e) => {
-          if (e.key === "a") {
+          if (e.key === "f") {
             this.activeKeys.left = true;
           }
-          if (e.key === "d") {
+          if (e.key === "h") {
             this.activeKeys.right = true;
-          }
-          if (e.key === "Escape") {
-            this.speed ? (this.speed = 0) : (this.speed = 2);
           }
         });
         document.addEventListener("keyup", (e) => {
-          if (e.key === "a") {
+          if (e.key === "f") {
             this.activeKeys.left = false;
           }
-          if (e.key === "d") {
+          if (e.key === "h") {
+            this.activeKeys.right = false;
+          }
+        });
+        break;
+      case 3:
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "j") {
+            this.activeKeys.left = true;
+          }
+          if (e.key === "l") {
+            this.activeKeys.right = true;
+          }
+        });
+        document.addEventListener("keyup", (e) => {
+          if (e.key === "j") {
+            this.activeKeys.left = false;
+          }
+          if (e.key === "l") {
             this.activeKeys.right = false;
           }
         });
