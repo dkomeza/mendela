@@ -18,13 +18,17 @@ class Player {
   tracks: number[][] = [];
   player: number;
   finishLine = false;
+  image: HTMLImageElement;
   constructor(canvas: HTMLCanvasElement, player: number, laps: number) {
     this.color = this.getColor(player, 1);
     this.width = canvas.width;
     this.height = canvas.height;
     this.canvas = canvas;
     this.context = canvas.getContext("2d")!;
-    this.position = [this.width / 2 - 2, this.height - 60 + player * 10];
+    this.position = [
+      this.width / 2 - 2,
+      this.height - this.height * 0.25 + (player * this.height) / 20,
+    ];
     this.speed = (canvas.width + canvas.height) / 10;
     this.activeKeys = {
       left: false,
@@ -32,6 +36,13 @@ class Player {
     };
     this.laps = laps;
     this.player = player;
+    const image = new Image();
+    image.src = this.getImage(player);
+    this.image = image;
+    image.onload = () => {
+      this.image = image;
+      this.tick(0);
+    };
   }
 
   getColor(player: number, alpha: number) {
@@ -141,66 +152,26 @@ class Player {
     }
     this.movePlayer(delta);
     this.fadePlayer();
-    this.updateCurrentLap();
+    return this.currentLap;
   }
 
-  createControls(player: number) {
-    switch (player) {
-      case 1:
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "a") {
-            this.activeKeys.left = true;
-          }
-          if (e.key === "d") {
-            this.activeKeys.right = true;
-          }
-        });
-        document.addEventListener("keyup", (e) => {
-          if (e.key === "a") {
-            this.activeKeys.left = false;
-          }
-          if (e.key === "d") {
-            this.activeKeys.right = false;
-          }
-        });
-        break;
-      case 2:
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "f") {
-            this.activeKeys.left = true;
-          }
-          if (e.key === "h") {
-            this.activeKeys.right = true;
-          }
-        });
-        document.addEventListener("keyup", (e) => {
-          if (e.key === "f") {
-            this.activeKeys.left = false;
-          }
-          if (e.key === "h") {
-            this.activeKeys.right = false;
-          }
-        });
-        break;
-      case 3:
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "j") {
-            this.activeKeys.left = true;
-          }
-          if (e.key === "l") {
-            this.activeKeys.right = true;
-          }
-        });
-        document.addEventListener("keyup", (e) => {
-          if (e.key === "j") {
-            this.activeKeys.left = false;
-          }
-          if (e.key === "l") {
-            this.activeKeys.right = false;
-          }
-        });
-        break;
-    }
+  createControls(keys: { left: string; right: string }) {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === keys.left) {
+        this.activeKeys.left = true;
+      }
+      if (e.key === keys.right) {
+        this.activeKeys.right = true;
+      }
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.key === keys.left) {
+        this.activeKeys.left = false;
+      }
+      if (e.key === keys.right) {
+        this.activeKeys.right = false;
+      }
+    });
   }
 
   checkFinishLine() {
@@ -210,46 +181,21 @@ class Player {
     ) {
       if (
         this.finishLine &&
-        this.position[0] >= this.width / 2 - 1 &&
-        this.position[0] < this.width / 2
+        this.position[0] >= this.width / 2 &&
+        this.position[0] < this.width / 2 + 10
       ) {
+        console.log(this.player);
         if (this.currentLap === this.laps) {
-          this.context.fillStyle = "green";
-          this.context.fillRect(
-            this.width / 2 - 50,
-            this.height / 2 - 20,
-            100,
-            40
-          );
-          this.context.font = "20px Arial black";
-          this.context.textAlign = "center";
-          this.context.fillStyle = "black";
-          this.context.fillText(`Winner!`, this.width / 2, this.height / 2);
           this.speed = 0;
           return true;
         }
         this.finishLine = false;
         this.currentLap++;
-        this.updateCurrentLap();
       } else if (this.position[0] >= this.width / 2 + 20 && !this.finishLine) {
-        console.log("Enabled finish line");
         this.finishLine = true;
       }
     }
     return false;
-  }
-
-  updateCurrentLap() {
-    this.context.fillStyle = "green";
-    this.context.fillRect(this.width / 2 - 50, this.height / 2 - 20, 100, 40);
-    this.context.font = "20px Arial black";
-    this.context.textAlign = "center";
-    this.context.fillStyle = "black";
-    this.context.fillText(
-      `Lap: ${this.currentLap}/${this.laps}`,
-      this.width / 2,
-      this.height / 2
-    );
   }
 
   checkCollision() {

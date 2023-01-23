@@ -16,6 +16,64 @@
         width: 100vw;
         overflow: hidden;
       }
+      .menu-wrapper.hidden {
+        display: none !important;
+      }
+      .menu-wrapper {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.301);
+        padding: 20px;
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+      }
+      canvas {
+        transition: 1s;
+      }
+      .menu {
+        display: flex;
+        column-gap: 8px;
+      }
+      button {
+        cursor: pointer;
+      }
+      .menu-wrapper > button {
+        display: block;
+        margin-top: 16px;
+        width: 100%;
+        background-color: green;
+        border: none;
+        outline: none;
+        border-radius: 8px;
+        padding: 8px;
+        color: white;
+        cursor: pointer;
+      }
+      .menu-option {
+        display: flex;
+        flex-direction: column;
+        padding: 4px 8px;
+        border-radius: 16px;
+      }
+      h2 {
+        text-align: center;
+        padding-bottom: 8px;
+      }
+      .input-wrapper {
+        display: flex;
+        flex-direction: row;
+        column-gap: 8px;
+        padding-bottom: 8px;
+      }
+      .input-wrapper > input {
+        width: 90px;
+      }
+
+      .menu-option.active {
+        border: 1px solid green;
+      }
     </style>
   </head>
   <body></body>
