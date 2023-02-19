@@ -19,6 +19,8 @@ const defaultKeys = [
   ["4", "6"],
 ];
 
+const colors = ["red", "blue", "green", "yellow"];
+
 export default class Menu {
   callback: (players: Player[]) => void;
   updateCallback: (PlayerList?: Player[]) => void = () => {};
@@ -43,6 +45,7 @@ export default class Menu {
       const menuOption = document.createElement("div");
       menuOption.classList.add("menu-option");
       menuOption.innerHTML = `<h2>Player ${i}</h2>`;
+      menuOption.style.color = colors[i - 1];
       const inputWrapper = document.createElement("div");
       inputWrapper.classList.add("input-wrapper");
       const leftInput = document.createElement("input");
