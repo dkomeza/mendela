@@ -1,4 +1,4 @@
 <?php 
-include("../db.php"); //require
+include("./db.php"); //require
 $db = new DB();
 echo json_encode($db->getRecords());
