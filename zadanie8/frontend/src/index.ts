@@ -58,7 +58,7 @@ class Row {
     row.onclick = (e) => {
       if (!this.input!.isActive) {
         if (e.target === row.querySelector("button")) {
-          console.log("remove");
+          this.input?.delete(this.data.ID);
         } else {
           currentActiveRow = this;
           this.input!.activate();
@@ -66,7 +66,7 @@ class Row {
       } else {
         if (e.target === row.querySelector("button")) {
           console.log("click");
-          this.input!.deactivate(true, this.data.ID);
+          this.input!.deactivate(this.data.ID);
           currentActiveRow = null;
         }
       }
@@ -175,10 +175,9 @@ class Input {
       };
     }
   }
-  deactivate(save = false, id = "0") {
-    if (save) {
-      this.save(id);
-    }
+  deactivate(id = "0") {
+    this.save(id);
+
     this.btn.innerText = "X";
     this.elements.forEach((element) => {
       if (element.classList.contains("country")) {
@@ -203,7 +202,34 @@ class Input {
     this.isActive = false;
   }
 
+  validate() {
+    console.log("validate");
+    const country = this.country.querySelector("select") as HTMLSelectElement;
+    const currency = this.currency.querySelector("input") as HTMLInputElement;
+    const no = this.no.querySelector("input") as HTMLInputElement;
+    const alloy = this.alloy.querySelector("select") as HTMLSelectElement;
+    const year = this.year.querySelector("input") as HTMLInputElement;
+    if (
+      !country.value ||
+      !currency.value ||
+      !no.value ||
+      !alloy.value ||
+      !year.value
+    ) {
+      throw new Error("All fields are required");
+    }
+    if (isNaN(Number(year.value))) {
+      throw new Error("Year must be a number");
+    }
+  }
+
   save(id: string) {
+    try {
+      this.validate();
+    } catch (error) {
+      alert(error);
+      return;
+    }
     fetch("/api/update.php", {
       method: "POST",
       headers: {
@@ -216,6 +242,18 @@ class Input {
         no: this.no.querySelector("input")?.value,
         alloy: this.alloy.querySelector("select")?.value,
         year: this.year.querySelector("input")?.value,
+      }),
+    }).then(start);
+  }
+
+  delete(id: string) {
+    fetch("/api/delete.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id,
       }),
     }).then(start);
   }
@@ -240,6 +278,9 @@ function start() {
   fetchData().then((data) => {
     countryOptions = data.countries;
     alloyOptions = data.alloys;
+    // sort data by id
+    data.data.sort((a: Data, b: Data) => parseInt(b.ID) - parseInt(a.ID));
+    console.log(data.data);
     data.data.forEach((row: Data) => {
       rows.push(new Row(row));
     });

@@ -71,4 +71,10 @@ class DB
         }
         $this->conn->query($sql);
     }
+
+    function deleteRecord($id)
+    {
+        $sql = "DELETE FROM `data` WHERE `data`.`ID` = '$id'";
+        $this->conn->query($sql);
+    }
 }
