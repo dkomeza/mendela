@@ -54,7 +54,21 @@ class DB
         return $records;
     }
 
-    function addRecord()
+    function addRecord($alloy, $country, $currency, $no, $year, $id)
     {
+        $sql = "SELECT `alloy_id` FROM `alloys` WHERE `alloy_name` = '$alloy'";
+        $result = $this->conn->query($sql);
+        $alloy_id = $result->fetch_assoc()['alloy_id'];
+
+        $sql = "SELECT `country_id` FROM `countries` WHERE `country_name` = '$country'";
+        $result = $this->conn->query($sql);
+        $country_id = $result->fetch_assoc()['country_id'];
+
+        if ($id == 0) {
+            $sql = "INSERT INTO `data` (`alloy`, `country`, `currency`, `no`, `year`) VALUES ('$alloy_id', '$country_id', '$currency', '$no', '$year')";
+        } else {
+            $sql = "UPDATE `data` SET `alloy` = '$alloy_id', `country` = '$country_id', `currency` = '$currency', `no` = '$no', `year` = '$year' WHERE `data`.`ID` = '$id'";
+        }
+        $this->conn->query($sql);
     }
 }

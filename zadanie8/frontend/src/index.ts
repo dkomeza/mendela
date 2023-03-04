@@ -20,7 +20,7 @@ interface Country {
 function createMainInput() {
   const input = document.querySelector("#add") as HTMLElement;
   const inputReactive = new Input(input);
-  inputReactive.activate();
+  inputReactive.activate(true);
 }
 
 async function fetchData() {
@@ -38,6 +38,7 @@ class Row {
   table: HTMLElement;
   isActive: boolean = false;
   input: Input | null = null;
+  row: HTMLTableRowElement | null = null;
   constructor(data: Data) {
     this.data = data;
     this.table = document.querySelector("#table") as HTMLElement;
@@ -46,7 +47,7 @@ class Row {
   createRow() {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td class="country">${this.data.country_image}</td>
+      <td class="country"><img src='./assets/${this.data.country_image}' alt="${this.data.country_name}" /></td>
       <td class="currency">${this.data.currency}</td>
       <td class="no">${this.data.no}</td>
       <td class="alloy">${this.data.alloy_name}</td>
@@ -59,16 +60,17 @@ class Row {
         if (e.target === row.querySelector("button")) {
           console.log("remove");
         } else {
-          console.log("kurwo ty jebana");
           currentActiveRow = this;
           this.input!.activate();
         }
       } else {
         if (e.target === row.querySelector("button")) {
           console.log("click");
-          this.input!.deactivate();
+          this.input!.deactivate(true, this.data.ID);
+          currentActiveRow = null;
         }
       }
+      this.row = row;
     };
     this.table.prepend(row);
   }
@@ -102,68 +104,159 @@ class Input {
       this.year,
     ];
   }
-  activate() {
+  activate(main = false) {
     this.isActive = true;
     this.btn.innerText = "Save";
     this.elements.forEach((element) => {
-      if (element.classList.contains("country")) {
-        element.innerHTML = `
-          <select name="country" id="country">
+      if (main) {
+        if (element.classList.contains("country")) {
+          element.innerHTML = `
+          <select name="country" id="country" class="input">
             ${countryOptions.map((country) => {
               return `<option value="${country.country_name}">${country.country_name}</option>`;
             })}
           </select>
         `;
-      } else if (element.classList.contains("alloy")) {
-        element.innerHTML = `
-          <select name="alloy" id="alloy">
+        } else if (element.classList.contains("alloy")) {
+          element.innerHTML = `
+          <select name="alloy" id="alloy" class="input">
             ${alloyOptions.map((alloy) => {
               return `<option value="${alloy.alloy_name}">${alloy.alloy_name}</option>`;
             })}
           </select>
         `;
-      } else {
-        let currentValue = element.textContent;
-        element.innerHTML = `
-          <input type="text" value="${currentValue}" />
+        } else {
+          let currentValue = element.textContent;
+          element.innerHTML = `
+          <input type="text" value="${currentValue}" class="input" />
           `;
+        }
+      } else {
+        if (element.classList.contains("country")) {
+          const img = element.querySelector("img") as HTMLImageElement;
+          const alt = img.alt;
+          console.log(alt);
+          console.log(countryOptions);
+          element.innerHTML = `
+          <select name="country" id="country" class="input">
+            ${countryOptions.map((country) => {
+              if (country.country_name === alt) {
+                return `<option value="${country.country_name}" selected>${country.country_name}</option>`;
+              } else {
+                return `<option value="${country.country_name}">${country.country_name}</option>`;
+              }
+            })}
+          </select>
+        `;
+        } else if (element.classList.contains("alloy")) {
+          const currentValue = element.textContent;
+          element.innerHTML = `
+          <select name="alloy" id="alloy" class="input">
+            ${alloyOptions.map((alloy) => {
+              if (alloy.alloy_name === currentValue) {
+                return `<option value="${alloy.alloy_name}" selected>${alloy.alloy_name}</option>`;
+              } else {
+                return `<option value="${alloy.alloy_name}">${alloy.alloy_name}</option>`;
+              }
+            })}
+          </select>
+        `;
+        } else {
+          let currentValue = element.textContent;
+          element.innerHTML = `
+          <input type="text" value="${currentValue}" class="input" />
+          `;
+        }
       }
     });
+    if (main) {
+      this.btn.onclick = () => {
+        this.save("0");
+      };
+    }
   }
-  deactivate() {
+  deactivate(save = false, id = "0") {
+    if (save) {
+      this.save(id);
+    }
     this.btn.innerText = "X";
     this.elements.forEach((element) => {
-      let currentValue = element.querySelector("input")?.value;
-      element.textContent = currentValue!;
+      if (element.classList.contains("country")) {
+        const select = element.querySelector("select") as HTMLSelectElement;
+        const value = select.value;
+        console.log(value);
+        const img = countryOptions.find(
+          (country) => country.country_name === value
+        )?.country_image;
+        element.innerHTML = `<img src="./assets/${img}" alt="${value}" />`;
+      } else if (element.classList.contains("alloy")) {
+        const select = element.querySelector("select") as HTMLSelectElement;
+        const value = select.value;
+        element.innerHTML = value;
+      } else {
+        let currentValue = (element.querySelector(".input") as HTMLInputElement)
+          .value;
+        element.textContent = currentValue!;
+      }
     });
+
     this.isActive = false;
+  }
+
+  save(id: string) {
+    fetch("/api/update.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: id,
+        country: this.country.querySelector("select")?.value,
+        currency: this.currency.querySelector("input")?.value,
+        no: this.no.querySelector("input")?.value,
+        alloy: this.alloy.querySelector("select")?.value,
+        year: this.year.querySelector("input")?.value,
+      }),
+    }).then(start);
   }
 }
 
 const data = [];
-const alloyOptions: Alloy[] = [];
-const countryOptions: Country[] = [];
+let alloyOptions: Alloy[] = [];
+let countryOptions: Country[] = [];
 let currentActiveRow: Row | null = null;
 const rows: Row[] = [];
 
-fetchData().then((data) => {
-  data.countries.forEach((country: Country) => {
-    countryOptions.push(country);
+function start() {
+  const table = document.querySelector("table") as HTMLTableElement;
+  table.innerHTML = `<tr class="table-row" id="add">
+  <td class="country"></td>
+  <td class="currency"></td>
+  <td class="no"></td>
+  <td class="alloy"></td>
+  <td class="year"></td>
+  <td class="btn"><button class="add">Add</button></td>
+</tr>`;
+  fetchData().then((data) => {
+    countryOptions = data.countries;
+    alloyOptions = data.alloys;
+    data.data.forEach((row: Data) => {
+      rows.push(new Row(row));
+    });
+    createMainInput();
   });
-  data.alloys.forEach((alloy: Alloy) => {
-    alloyOptions.push(alloy);
-  });
-  data.data.forEach((row: Data) => {
-    rows.push(new Row(row));
-  });
-  createMainInput();
-});
+}
+
+start();
 
 window.onclick = (e) => {
   // check if click is outside of input
   if (
     currentActiveRow &&
-    !currentActiveRow.input!.element.contains(e.target as Node)
+    !(
+      currentActiveRow.row!.contains(e.target as Node) ||
+      (e.target as HTMLElement).tagName === "IMG"
+    )
   ) {
     currentActiveRow.input!.deactivate();
     currentActiveRow = null;
