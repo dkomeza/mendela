@@ -26,11 +26,13 @@ function createMainInput() {
 }
 
 async function fetchData() {
-  const data = await fetch("/api/data.php").then((res) => res.json());
-  const countries = await fetch("/api/get_countries.php").then((res) =>
+  const data = await fetch("../backend/data.php").then((res) => res.json());
+  const countries = await fetch("../backend/get_countries.php").then((res) =>
     res.json()
   );
-  const alloys = await fetch("/api/get_alloys.php").then((res) => res.json());
+  const alloys = await fetch("../backend/get_alloys.php").then((res) =>
+    res.json()
+  );
 
   return { data, countries, alloys };
 }
@@ -264,7 +266,7 @@ class Input {
       alert(error);
       throw error;
     }
-    const res = fetch("/api/update.php", {
+    const res = fetch("../backend/update.php", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -282,7 +284,7 @@ class Input {
   }
 
   delete(id: string) {
-    fetch("/api/delete.php", {
+    fetch("../backend/delete.php", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
