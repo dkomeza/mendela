@@ -12,6 +12,6 @@ $no = $data['no'];
 $year = $data['year'];
 $id = $data['id'];
 
-$db->addRecord($alloy, $country, $currency, $no, $year, $id);
+$new_id = $db->addRecord($alloy, $country, $currency, $no, $year, $id);
 
-echo $country;
+echo json_encode(["id" => $new_id]);

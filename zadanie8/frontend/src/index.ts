@@ -17,6 +17,8 @@ interface Country {
   country_image: string;
 }
 
+const table = document.querySelector("table") as HTMLTableElement;
+
 function createMainInput() {
   const input = document.querySelector("#add") as HTMLElement;
   const inputReactive = new Input(input);
@@ -59,6 +61,7 @@ class Row {
       if (!this.input!.isActive) {
         if (e.target === row.querySelector("button")) {
           this.input?.delete(this.data.ID);
+          row.remove();
         } else {
           currentActiveRow = this;
           this.input!.activate();
@@ -171,7 +174,38 @@ class Input {
     });
     if (main) {
       this.btn.onclick = () => {
-        this.save("0");
+        try {
+          this.save("0").then((id: { id: string }) => {
+            const country_name = (
+              this.country.children[0]! as HTMLSelectElement
+            ).value;
+            const data = {
+              ID: id.id,
+              currency: (this.currency.children[0]! as HTMLInputElement).value,
+              no: (this.no.children[0]! as HTMLInputElement).value,
+              alloy_name: (this.alloy.children[0]! as HTMLSelectElement).value,
+              year: (this.year.children[0]! as HTMLInputElement).value,
+              country_name,
+              country_image: countryOptions.find(
+                (country) => country.country_name === country_name
+              )!.country_image,
+            };
+            table.children[0].remove();
+            rows.push(new Row(data));
+            const header = document.createElement("tr");
+            header.classList.add("table-header");
+            header.innerHTML = `
+              <th>Country</th>
+              <th>Currency</th>
+              <th>No</th>
+              <th>Alloy</th>
+              <th>Year</th>
+              <th></th>`;
+            table.prepend(header);
+          });
+        } catch (error) {
+          console.log(error);
+        }
       };
     }
   }
@@ -223,14 +257,14 @@ class Input {
     }
   }
 
-  save(id: string) {
+  async save(id: string) {
     try {
       this.validate();
     } catch (error) {
       alert(error);
-      return;
+      throw error;
     }
-    fetch("/api/update.php", {
+    const res = fetch("/api/update.php", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -243,7 +277,8 @@ class Input {
         alloy: this.alloy.querySelector("select")?.value,
         year: this.year.querySelector("input")?.value,
       }),
-    }).then(start);
+    }).then((res) => res.json());
+    return await res;
   }
 
   delete(id: string) {

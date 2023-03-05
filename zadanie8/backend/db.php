@@ -70,6 +70,7 @@ class DB
             $sql = "UPDATE `data` SET `alloy` = '$alloy_id', `country` = '$country_id', `currency` = '$currency', `no` = '$no', `year` = '$year' WHERE `data`.`ID` = '$id'";
         }
         $this->conn->query($sql);
+        return $this->conn->insert_id;
     }
 
     function deleteRecord($id)
