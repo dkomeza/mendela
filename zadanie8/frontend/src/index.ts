@@ -255,7 +255,7 @@ class Input {
       body: JSON.stringify({
         id,
       }),
-    }).then(start);
+    });
   }
 }
 
@@ -268,13 +268,13 @@ const rows: Row[] = [];
 function start() {
   const table = document.querySelector("table") as HTMLTableElement;
   table.innerHTML = `<tr class="table-row" id="add">
-  <td class="country"></td>
-  <td class="currency"></td>
-  <td class="no"></td>
-  <td class="alloy"></td>
-  <td class="year"></td>
-  <td class="btn"><button class="add">Add</button></td>
-</tr>`;
+    <td class="country"></td>
+    <td class="currency"></td>
+    <td class="no"></td>
+    <td class="alloy"></td>
+    <td class="year"></td>
+    <td class="btn"><button class="add">Add</button></td>
+  </tr>`;
   fetchData().then((data) => {
     countryOptions = data.countries;
     alloyOptions = data.alloys;
@@ -284,6 +284,16 @@ function start() {
     data.data.forEach((row: Data) => {
       rows.push(new Row(row));
     });
+    const header = document.createElement("tr");
+    header.classList.add("table-header");
+    header.innerHTML = `
+    <th>Country</th>
+        <th>Currency</th>
+        <th>No</th>
+        <th>Alloy</th>
+        <th>Year</th>
+        <th></th>`;
+    table.prepend(header);
     createMainInput();
   });
 }
