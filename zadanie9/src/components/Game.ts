@@ -1,5 +1,14 @@
-type Cell = Block | 0;
+import UI from "./UI";
+
+type tCell = Cell | Virus | 0;
 type Direction = "left" | "right";
+
+type tBoard = tCell[][];
+
+interface iPosition {
+  x: number;
+  y: number;
+}
 
 // interface Cell {
 
@@ -9,7 +18,7 @@ type Direction = "left" | "right";
  */
 class Game {
   board: Board;
-  fallingCells = [] as Block[];
+  fallingCells = [] as Cell[];
   activeBlock: ActiveBlock | undefined;
   boardElement: HTMLDivElement | undefined;
   speed = 800;
@@ -19,7 +28,7 @@ class Game {
   private fastMode = false;
 
   constructor() {
-    this.board = new Board({ width: 10, height: 20 });
+    this.board = new Board({ width: 8, height: 15 });
   }
 
   /**
@@ -32,6 +41,7 @@ class Game {
    */
   start(): void {
     this.renderBoard();
+    this.generateViruses();
     this.gameInterval = setInterval(this.loop.bind(this), 1000 - this.speed);
   }
 
@@ -58,6 +68,15 @@ class Game {
     this.boardElement = game;
   }
 
+  private generateViruses(): void {
+    const viruses = [];
+    for (let i = 0; i < 3; i++) {
+      const virus = new Virus(this.board.board);
+      viruses.push(virus);
+    }
+    this.board.addViruses(viruses, this.boardElement!);
+  }
+
   /**
    * The main game loop.
    * @memberof Game
@@ -66,23 +85,53 @@ class Game {
    */
   private loop(): void {
     if (this.fallingCells.length === 0) {
-      this.stopFastDrop();
-      this.spawnBlock();
+      const blocksToFall = this.board.checkSameColor();
+      if (blocksToFall.length > 0) {
+        this.stopFastDrop();
+        this.fallingCells = blocksToFall.sort(
+          (a, b) => b.position.y - a.position.y
+        );
+        const allCells = this.allCells();
+        allCells.forEach((cell) => cell.updateGraphics());
+      } else {
+        this.stopFastDrop();
+        if (!this.spawnBlock()) {
+          console.log("nosz kurwa");
+          clearInterval(this.gameInterval);
+        }
+      }
     } else {
       this.moveCells();
     }
   }
 
+  private allCells(): Cell[] {
+    const cells = [] as Cell[];
+    for (let i = 0; i < this.board.board.length; i++) {
+      for (let j = 0; j < this.board.board[i].length; j++) {
+        const cell = this.board.board[i][j];
+        if (cell instanceof Cell) {
+          cells.push(cell);
+        }
+      }
+    }
+    return cells;
+  }
+
   /**
-   * Spawns a new block.
+   * Spawns a new block, returns false if block cannot spawn.
    * @memberof Game
    * @method spawnBlock
-   * @returns {void}
+   * @returns {boolean}
    */
-  private spawnBlock(): void {
+  private spawnBlock(): boolean {
     this.activeBlock = new ActiveBlock(this.board.board);
-    this.activeBlock.applyToBoard(this.boardElement);
-    this.fallingCells = [this.activeBlock.blocks[1]];
+    if (this.activeBlock.blocks[1] && this.activeBlock.blocks[2]) {
+      this.activeBlock.applyToBoard(this.boardElement);
+      this.fallingCells = [this.activeBlock.blocks[1]];
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -173,49 +222,229 @@ class Board {
       .fill(0)
       .map(() => Array(dimmensions.width).fill(0));
   }
+
+  public checkSameColor() {
+    const deleteMap = new Map<string, Block>();
+    for (let i = 0; i < this.board.length; i++) {
+      const toDelete = this.checkRow(this.board[i]);
+      if (toDelete.length > 0) {
+        for (const block of toDelete) {
+          deleteMap.set(block.ID, block);
+        }
+      }
+    }
+
+    for (let i = 0; i < this.board[0].length; i++) {
+      const toDelete = this.checkColumn(i);
+      if (toDelete.length > 0) {
+        for (const block of toDelete) {
+          deleteMap.set(block.ID, block);
+        }
+      }
+    }
+
+    for (const block of deleteMap.values()) {
+      if (block instanceof Cell) {
+        if (block.connected) {
+          block.connected.connected = null;
+          block.connected.updateGraphics();
+        }
+      }
+      block.delete();
+    }
+
+    return this.checkFalling(deleteMap);
+  }
+
+  public addViruses(viruses: Virus[], boardElement: HTMLDivElement) {
+    for (const virus of viruses) {
+      virus.applyToBoard(boardElement);
+    }
+  }
+
+  private checkRow(row: tCell[]) {
+    const deleteMap = [] as Block[];
+    const toDelete = [] as Block[];
+    for (let i = 0; i < row.length; i++) {
+      const cell = row[i];
+      if (cell instanceof Block) {
+        if (toDelete.length === 0) {
+          toDelete.push(cell);
+        } else {
+          if (cell.color === toDelete[0].color) {
+            toDelete.push(cell);
+          } else {
+            if (toDelete.length >= 4) {
+              deleteMap.push(...toDelete);
+            }
+            toDelete.length = 0;
+            toDelete.push(cell);
+          }
+        }
+      } else {
+        if (toDelete.length >= 4) {
+          deleteMap.push(...toDelete);
+        }
+        toDelete.length = 0;
+      }
+    }
+    if (toDelete.length >= 4) {
+      deleteMap.push(...toDelete);
+    }
+    return deleteMap;
+  }
+
+  private checkColumn(column: number) {
+    const deleteMap = [] as Block[];
+    const toDelete = [] as Block[];
+    for (let i = 0; i < this.board.length; i++) {
+      const cell = this.board[i][column];
+      if (cell instanceof Block) {
+        if (toDelete.length === 0) {
+          toDelete.push(cell);
+        } else {
+          if (cell.color === toDelete[0].color) {
+            toDelete.push(cell);
+          } else {
+            if (toDelete.length >= 4) {
+              deleteMap.push(...toDelete);
+            }
+            toDelete.length = 0;
+            toDelete.push(cell);
+          }
+        }
+      } else {
+        if (toDelete.length >= 4) {
+          deleteMap.push(...toDelete);
+        }
+        toDelete.length = 0;
+      }
+    }
+    if (toDelete.length >= 4) {
+      deleteMap.push(...toDelete);
+    }
+    return deleteMap;
+  }
+
+  private checkFalling(cells: Map<string, Block>) {
+    if (Array.from(cells.values()).length === 0) {
+      return [];
+    }
+    const fallingCells = new Map<string, Cell>();
+
+    const toCheck = new Map<string, Block>();
+    const checked = new Map<string, Block>();
+
+    for (const block of cells.values()) {
+      const x = block.position.x;
+      const y = block.position.y;
+
+      const cell = this.board[y - 1][x];
+      if (cell instanceof Cell) {
+        toCheck.set(cell.ID, cell);
+        fallingCells.set(cell.ID, cell);
+      }
+
+      if (block instanceof Cell && block.connected) {
+        if (!cells.has(block.connected.ID)) {
+          block.connected.connected = null;
+          if (this.canFall(block.connected)) {
+            block.connected.falling = true;
+            fallingCells.set(block.connected.ID, block.connected);
+            toCheck.set(block.connected.ID, block.connected);
+          }
+        }
+      }
+    }
+
+    while (toCheck.size > 0) {
+      const block = toCheck.values().next().value;
+      toCheck.delete(block.ID);
+      checked.set(block.ID, block);
+
+      const y = block.position.y;
+      if (
+        this.board[y - 1] &&
+        this.board[y - 1][block.position.x] instanceof Block
+      ) {
+        const cell = this.board[y - 1][block.position.x];
+        if (cell instanceof Cell && !checked.has(cell.ID)) {
+          cell.falling = true;
+          toCheck.set(cell.ID, cell);
+          fallingCells.set(cell.ID, cell);
+          if (cell.connected && !checked.has(cell.connected.ID)) {
+            cell.connected.connected = null;
+            cell.connected.falling = true;
+            toCheck.set(cell.connected.ID, cell.connected);
+            fallingCells.set(cell.connected.ID, cell.connected);
+          }
+          cell.connected = null;
+        }
+      }
+    }
+    return [...fallingCells.values()];
+  }
+
+  private canFall(block: Block) {
+    if (block.position.y === this.board.length - 1) {
+      return false;
+    }
+
+    if (this.board[block.position.y + 1][block.position.x] instanceof Block) {
+      return false;
+    }
+
+    return true;
+  }
   // ...
 }
 
 class ActiveBlock {
   public blocks = {} as {
-    1: Block;
-    2: Block;
+    1: Cell;
+    2: Cell;
   };
 
-  constructor(board: Cell[][]) {
+  constructor(board: tBoard) {
     const x = Math.floor((board[0].length - 1) / 2);
     const y = 0;
+
+    if (board[y][x] !== 0 || board[y][x + 1] !== 0) {
+      return;
+    }
+
     this.blocks = {
-      1: new Block(board, { x, y }),
-      2: new Block(board, { x: x + 1, y }),
+      1: new Cell(board, { x, y }),
+      2: new Cell(board, { x: x + 1, y }),
     };
     this.blocks[1].connectBlock(this.blocks[2]);
+    this.blocks[2].connectBlock(this.blocks[1]);
   }
 
   public applyToBoard(boardElement: HTMLDivElement | undefined) {
     if (boardElement) {
-      boardElement.append(this.blocks[1].element, this.blocks[2].element);
+      for (const block of Object.values(this.blocks)) {
+        block.applyToBoard(boardElement);
+      }
     }
   }
 }
 
 class Block {
-  private board: Cell[][];
-  public element: HTMLDivElement;
-  private connected: Block | null = null;
-  private rotation: 0 | 1 | 2 | 3 = 0;
+  protected board: tBoard;
+  protected element: HTMLDivElement;
 
   public position: { x: number; y: number } = { x: -1, y: -1 };
-  public color: Colors = Colors.RED;
-  public falling = true;
+  public color: Colors = Colors.YELLOW;
 
-  constructor(board: Cell[][], { x, y }: { x: number; y: number }) {
+  public ID = crypto.randomUUID();
+
+  constructor(board: tBoard, position: iPosition) {
     const cell = document.createElement("div");
     cell.classList.add("blob");
     this.element = cell;
     this.board = board;
-    this.position = { x, y };
-    this.board[y][x] = this;
+    this.position = position;
     this.color = this.createRandomColor();
     this.renderBlock();
   }
@@ -227,24 +456,48 @@ class Block {
     return colors[Math.floor(Math.random() * colors.length)];
   }
 
-  public connectBlock(block: Block) {
-    this.connected = block;
+  public applyToBoard(boardElement: HTMLDivElement) {
+    boardElement.appendChild(this.element);
   }
 
   private renderBlock() {
     this.element.style.left = `${this.position.x * 32}px`;
     this.element.style.top = `${this.position.y * 32}px`;
     switch (this.color) {
-      case Colors.RED:
-        this.element.style.backgroundColor = "red";
+      case Colors.BROWN:
+        this.element.classList.add("brown");
+        this.element.style.backgroundColor = "brown";
         break;
       case Colors.BLUE:
+        this.element.classList.add("blue");
         this.element.style.backgroundColor = "blue";
         break;
       case Colors.YELLOW:
+        this.element.classList.add("yellow");
         this.element.style.backgroundColor = "yellow";
         break;
     }
+  }
+
+  public delete() {
+    this.board[this.position.y][this.position.x] = 0;
+    this.element.classList.add("deleted");
+    debugger;
+    setTimeout(() => {
+      this.element.remove();
+    }, 100);
+  }
+}
+
+class Cell extends Block {
+  private rotation: 0 | 1 | 2 | 3 = 0;
+  public connected: Cell | null = null;
+  public falling = true;
+
+  constructor(board: tBoard, position: iPosition) {
+    super(board, position);
+    this.board[position.y][position.x] = this;
+    this.updateGraphics();
   }
 
   public fall() {
@@ -266,7 +519,6 @@ class Block {
         if (bottomCell.position.y === this.board.length - 1) {
           this.falling = false;
           this.connected.falling = false;
-          this.connected = null;
           return;
         }
 
@@ -277,7 +529,6 @@ class Block {
         ) {
           this.falling = false;
           this.connected.falling = false;
-          this.connected = null;
           return;
         }
 
@@ -289,7 +540,6 @@ class Block {
         ) {
           this.falling = false;
           this.connected.falling = false;
-          this.connected = null;
           return;
         }
       } else if (sameColumn) {
@@ -297,7 +547,6 @@ class Block {
         if (bottomCell.position.y === this.board.length - 1) {
           this.falling = false;
           this.connected.falling = false;
-          this.connected = null;
           return;
         }
 
@@ -309,7 +558,6 @@ class Block {
         ) {
           this.falling = false;
           this.connected.falling = false;
-          this.connected = null;
           return;
         }
       }
@@ -326,6 +574,26 @@ class Block {
       this.updatePosition(this);
       this.connected.position.y += 1;
       this.updatePosition(this.connected);
+    } else {
+      // check if on the bottom
+      if (this.position.y === this.board.length - 1) {
+        this.falling = false;
+        return;
+      }
+
+      // check if there is a block below
+      if (this.board[this.position.y + 1][this.position.x] instanceof Block) {
+        this.falling = false;
+        return;
+      }
+
+      // update board
+      this.board[this.position.y][this.position.x] = 0;
+      this.board[this.position.y + 1][this.position.x] = this;
+
+      // move down
+      this.position.y += 1;
+      this.updatePosition(this);
     }
   }
 
@@ -509,20 +777,87 @@ class Block {
       this.connected;
     this.updatePosition(this);
     this.updatePosition(this.connected);
+    this.updateGraphics();
   }
 
-  private updatePosition(block: Block) {
+  public connectBlock(block: Cell) {
+    this.connected = block;
+    this.updateGraphics();
+  }
+
+  public updateGraphics() {
+    if (this.connected) {
+      const removeClasses = ["single", "left", "right", "top", "bottom"];
+      this.element.classList.remove(...removeClasses);
+      this.connected.element.classList.remove(...removeClasses);
+      this.element.classList.add("connected");
+      this.connected.element.classList.add("connected");
+      const bottomCell =
+        this.position.y >= this.connected.position.y ? this : this.connected;
+      const topCell =
+        this.position.y < this.connected.position.y ? this : this.connected;
+      const leftCell =
+        this.position.x <= this.connected.position.x ? this : this.connected;
+      const rightCell =
+        this.position.x > this.connected.position.x ? this : this.connected;
+
+      const sameRow = bottomCell.position.y === topCell.position.y;
+      const sameColumn = leftCell.position.x === rightCell.position.x;
+
+      if (sameRow) {
+        leftCell.element.classList.add("left");
+        rightCell.element.classList.add("right");
+      } else if (sameColumn) {
+        topCell.element.classList.add("top");
+        bottomCell.element.classList.add("bottom");
+      }
+    } else {
+      const removeClasses = ["connected", "left", "right", "top", "bottom"];
+      this.element.classList.remove(...removeClasses);
+      this.element.classList.add("single");
+    }
+  }
+
+  private updatePosition(block: Cell) {
     block.element.style.left = `${block.position.x * 32}px`;
     block.element.style.top = `${block.position.y * 32}px`;
   }
 }
 
+class Virus extends Block {
+  constructor(board: tBoard) {
+    const position = {
+      x: 0,
+      y: 0,
+    };
+
+    while (true) {
+      const x = Math.floor(Math.random() * board[0].length);
+      const y = Math.floor(Math.random() * (board.length - 8) + 8);
+      if (board[y][x] === 0) {
+        position.x = x;
+        position.y = y;
+        break;
+      }
+    }
+
+    super(board, position);
+    this.board[position.y][position.x] = this;
+    this.markVirus();
+  }
+
+  private markVirus() {
+    this.element.classList.add("virus");
+  }
+}
+
 enum Colors {
-  RED,
-  BLUE,
   YELLOW,
+  BLUE,
+  BROWN,
 }
 
 export default new Game();
 
 // Path: src/components/Game.ts
+// shadcn/ui

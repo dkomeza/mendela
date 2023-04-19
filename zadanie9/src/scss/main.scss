@@ -1,29 +1,141 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   background-color: #333333;
   display: flex;
   justify-content: center;
   align-items: center;
   margin: 0;
+  background-image: url("/img/pf.png");
+  background-repeat: no-repeat;
+  background-size: 1200px;
 }
-
 .game {
   display: flex;
   flex-direction: column;
-  position: relative;
+  position: absolute;
+  top: 176px;
+  left: 503px;
   .row {
     display: flex;
     .cell {
       display: block;
-      width: 30px;
-      height: 30px;
-      border: 1px solid grey;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(128, 128, 128, 0.337);
     }
   }
   .blob {
     position: absolute;
     width: 30px;
     height: 30px;
-    margin-left: 1px;
+    &.virus {
+      background-color: transparent !important;
+      background-size: cover !important;
+      &.blue {
+        background: url("/img/covid_blue.png") no-repeat;
+        &.deleted {
+          background: url("/img/bl_x.png") no-repeat !important;
+        }
+      }
+      &.brown {
+        background: url("/img/covid_brown.png") no-repeat;
+        &.deleted {
+          background: url("/img/br_x.png") no-repeat !important;
+        }
+      }
+      &.yellow {
+        background: url("/img/covid_yellow.png") no-repeat;
+        &.deleted {
+          background: url("/img/yl_x.png") no-repeat !important;
+        }
+      }
+    }
+
+    &.single {
+      background-color: transparent !important;
+      background-size: cover !important;
+      &.blue {
+        background: url("/img/bl_dot.png") no-repeat;
+      }
+      &.brown {
+        background: url("/img/br_dot.png") no-repeat;
+      }
+      &.yellow {
+        background: url("/img/yl_dot.png") no-repeat;
+      }
+    }
+
+    &.connected {
+      background-color: transparent !important;
+      background-size: cover !important;
+      &.left,
+      &.right {
+        background-position-y: 3px !important;
+      }
+      &.blue {
+        &.left {
+          background: url("/img/bl_left.png") no-repeat;
+        }
+        &.right {
+          background: url("/img/bl_right.png") no-repeat;
+        }
+        &.top {
+          background: url("/img/bl_up.png") no-repeat;
+          background-position-y: 4px;
+        }
+        &.bottom {
+          background: url("/img/bl_down.png") no-repeat;
+        }
+      }
+      &.brown {
+        &.left {
+          background: url("/img/br_left.png") no-repeat;
+        }
+        &.right {
+          background: url("/img/br_right.png") no-repeat;
+        }
+        &.top {
+          background: url("/img/br_up.png") no-repeat;
+          background-position-y: 4px;
+        }
+        &.bottom {
+          background: url("/img/br_down.png") no-repeat;
+        }
+      }
+      &.yellow {
+        &.left {
+          background: url("/img/yl_left.png") no-repeat;
+        }
+        &.right {
+          background: url("/img/yl_right.png") no-repeat;
+        }
+        &.top {
+          background: url("/img/yl_up.png") no-repeat;
+          background-position-y: 4px;
+        }
+        &.bottom {
+          background: url("/img/yl_down.png") no-repeat;
+        }
+      }
+    }
+
+    &.deleted {
+      background-color: transparent !important;
+      background-size: cover !important;
+      background-position: center center !important;
+      &.blue {
+        background: url("/img/bl_o.png") no-repeat !important;
+      }
+      &.brown {
+        background: url("/img/br_o.png") no-repeat !important;
+      }
+      &.yellow {
+        background: url("/img/yl_o.png") no-repeat !important;
+      }
+    }
   }
   .active-block {
     position: absolute;
