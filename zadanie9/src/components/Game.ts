@@ -1,4 +1,5 @@
 import UI from "./UI";
+import Storage from "./Storage";
 
 type tCell = Cell | Virus | 0;
 type Direction = "left" | "right";
@@ -20,6 +21,7 @@ class Game {
   board: Board;
   fallingCells = [] as Cell[];
   activeBlock: ActiveBlock | undefined;
+  nextBlock: ActiveBlock | undefined;
   boardElement: HTMLDivElement | undefined;
   speed = 800;
   fastSpeed = 1000 - (1000 - this.speed) / 5;
@@ -27,8 +29,14 @@ class Game {
   private gameInterval: number | undefined;
   private fastMode = false;
 
+  public viruses: Virus[] = [];
+
+  private score = 0;
+  private first = true;
+
   constructor() {
     this.board = new Board({ width: 8, height: 15 });
+    this.board.deleteVirus = this.deleteVirus;
   }
 
   /**
@@ -42,7 +50,10 @@ class Game {
   start(): void {
     this.renderBoard();
     this.generateViruses();
+    UI.createViruses();
+    UI.createScore();
     this.gameInterval = setInterval(this.loop.bind(this), 1000 - this.speed);
+    this.spawnBlock();
   }
 
   /**
@@ -70,10 +81,11 @@ class Game {
 
   private generateViruses(): void {
     const viruses = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 1; i++) {
       const virus = new Virus(this.board.board);
       viruses.push(virus);
     }
+    this.viruses = viruses;
     this.board.addViruses(viruses, this.boardElement!);
   }
 
@@ -84,24 +96,28 @@ class Game {
    * @returns {void}
    */
   private loop(): void {
-    if (this.fallingCells.length === 0) {
-      const blocksToFall = this.board.checkSameColor();
-      if (blocksToFall.length > 0) {
-        this.stopFastDrop();
-        this.fallingCells = blocksToFall.sort(
-          (a, b) => b.position.y - a.position.y
-        );
-        const allCells = this.allCells();
-        allCells.forEach((cell) => cell.updateGraphics());
-      } else {
-        this.stopFastDrop();
-        if (!this.spawnBlock()) {
-          console.log("nosz kurwa");
-          clearInterval(this.gameInterval);
-        }
-      }
+    if (this.nextBlock && this.nextBlock.animating) {
+      return;
     } else {
-      this.moveCells();
+      if (this.fallingCells.length === 0) {
+        const blocksToFall = this.board.checkSameColor();
+        if (blocksToFall.length > 0) {
+          this.stopFastDrop();
+          this.fallingCells = blocksToFall.sort(
+            (a, b) => b.position.y - a.position.y
+          );
+          const allCells = this.allCells();
+          allCells.forEach((cell) => cell.updateGraphics());
+        } else {
+          this.stopFastDrop();
+          this.animatePill();
+        }
+      } else {
+        this.moveCells();
+      }
+    }
+    if (this.first) {
+      this.first = false;
     }
   }
 
@@ -125,13 +141,10 @@ class Game {
    * @returns {boolean}
    */
   private spawnBlock(): boolean {
-    this.activeBlock = new ActiveBlock(this.board.board);
-    if (this.activeBlock.blocks[1] && this.activeBlock.blocks[2]) {
-      this.activeBlock.applyToBoard(this.boardElement);
-      this.fallingCells = [this.activeBlock.blocks[1]];
-      return true;
-    }
-    return false;
+    this.nextBlock = new ActiveBlock(this.board.board);
+    this.nextBlock.animating = false;
+    UI.showBlock(this.nextBlock);
+    return true;
   }
 
   /**
@@ -193,10 +206,12 @@ class Game {
     this.fastMode = true;
     if (this.gameInterval) {
       clearInterval(this.gameInterval);
-      this.gameInterval = setInterval(
-        this.loop.bind(this),
-        1000 - this.fastSpeed
-      );
+      if (this.viruses.length > 0) {
+        this.gameInterval = setInterval(
+          this.loop.bind(this),
+          1000 - this.fastSpeed
+        );
+      }
     }
   }
 
@@ -210,13 +225,58 @@ class Game {
     if (this.gameInterval && this.fastMode) {
       this.fastMode = false;
       clearInterval(this.gameInterval);
-      this.gameInterval = setInterval(this.loop.bind(this), 1000 - this.speed);
+      if (this.viruses.length > 0) {
+        this.gameInterval = setInterval(
+          this.loop.bind(this),
+          1000 - this.speed
+        );
+      }
     }
+  }
+
+  public deleteVirus = (block: Virus) => {
+    this.viruses = this.viruses.filter((virus) => virus.ID !== block.ID);
+    UI.updateViruses(block.ID);
+    this.score += 100;
+    Storage.saveHighScore(this.score);
+    UI.updateScore(this.score);
+
+    if (this.viruses.length === 0) {
+      clearInterval(this.gameInterval);
+      UI.stageCleared();
+    }
+  };
+
+  private animatePill() {
+    // UI.animateHand();
+    if (this.nextBlock) {
+      this.nextBlock.animating = true;
+    }
+    const x = Math.floor((this.board.board[0].length - 1) / 2);
+    if (this.board.board[0][x] !== 0 || this.board.board[0][x + 1]) {
+      if (!this.first) {
+        clearInterval(this.gameInterval);
+        UI.gameOver();
+        return;
+      }
+    }
+    UI.animatePill();
+    setTimeout(() => {
+      if (this.nextBlock) {
+        this.activeBlock = this.nextBlock;
+        this.activeBlock.animating = false;
+        this.activeBlock.applyToBoard(this.boardElement);
+        this.fallingCells.push(this.activeBlock.blocks[1]);
+        this.spawnBlock();
+        this.nextBlock.animating = false;
+      }
+    }, 500);
   }
 }
 
 class Board {
-  board: Array<Array<Cell>> = [];
+  board: Array<Array<tCell>> = [];
+  public deleteVirus: ((virus: Virus) => void) | undefined;
   constructor(dimmensions: { width: number; height: number }) {
     this.board = Array(dimmensions.height)
       .fill(0)
@@ -249,6 +309,8 @@ class Board {
           block.connected.connected = null;
           block.connected.updateGraphics();
         }
+      } else if (block instanceof Virus) {
+        if (this.deleteVirus) this.deleteVirus(block);
       }
       block.delete();
     }
@@ -364,6 +426,7 @@ class Board {
 
       const y = block.position.y;
       if (
+        y - 1 >= 0 &&
         this.board[y - 1] &&
         this.board[y - 1][block.position.x] instanceof Block
       ) {
@@ -400,6 +463,7 @@ class Board {
 }
 
 class ActiveBlock {
+  animating = true;
   public blocks = {} as {
     1: Cell;
     2: Cell;
@@ -408,10 +472,6 @@ class ActiveBlock {
   constructor(board: tBoard) {
     const x = Math.floor((board[0].length - 1) / 2);
     const y = 0;
-
-    if (board[y][x] !== 0 || board[y][x + 1] !== 0) {
-      return;
-    }
 
     this.blocks = {
       1: new Cell(board, { x, y }),
@@ -432,7 +492,7 @@ class ActiveBlock {
 
 class Block {
   protected board: tBoard;
-  protected element: HTMLDivElement;
+  public element: HTMLDivElement;
 
   public position: { x: number; y: number } = { x: -1, y: -1 };
   public color: Colors = Colors.YELLOW;
@@ -482,7 +542,6 @@ class Block {
   public delete() {
     this.board[this.position.y][this.position.x] = 0;
     this.element.classList.add("deleted");
-    debugger;
     setTimeout(() => {
       this.element.remove();
     }, 100);
@@ -599,7 +658,7 @@ class Cell extends Block {
 
   public move(direction: Direction) {
     const moveDirection = direction === "left" ? -1 : 1;
-    if (!this.connected) {
+    if (!this.connected || !this.falling) {
       return;
     }
     const bottomCell =
@@ -682,7 +741,7 @@ class Cell extends Block {
   public rotate(direction: Direction) {
     const rotateDirection = direction === "left" ? -1 : 1;
 
-    if (!this.connected) {
+    if (!this.connected || !this.falling) {
       return;
     }
 
@@ -858,6 +917,7 @@ enum Colors {
 }
 
 export default new Game();
+export { ActiveBlock };
 
 // Path: src/components/Game.ts
 // shadcn/ui
