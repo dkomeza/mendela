@@ -25,6 +25,7 @@ class Game {
   boardElement: HTMLDivElement | undefined;
   speed = 800;
   fastSpeed = 1000 - (1000 - this.speed) / 5;
+  UI: UI | undefined;
 
   private gameInterval: number | undefined;
   private fastMode = false;
@@ -39,6 +40,10 @@ class Game {
     this.board.deleteVirus = this.deleteVirus;
   }
 
+  setUI(UI: UI): void {
+    this.UI = UI;
+  }
+
   /**
    * Starts the game.
    * @memberof Game
@@ -50,10 +55,14 @@ class Game {
   start(): void {
     this.renderBoard();
     this.generateViruses();
-    UI.createViruses();
-    UI.createScore();
+    this.UI?.createViruses(this.viruses);
+    this.UI?.createScore();
     this.gameInterval = setInterval(this.loop.bind(this), 1000 - this.speed);
     this.spawnBlock();
+  }
+
+  removeInterval(): void {
+    clearInterval(this.gameInterval!);
   }
 
   /**
@@ -75,13 +84,14 @@ class Game {
       }
       game.appendChild(row);
     }
-    document.body.appendChild(game);
+    const screen = document.getElementById("screen")!;
+    screen.appendChild(game);
     this.boardElement = game;
   }
 
   private generateViruses(): void {
     const viruses = [];
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 3; i++) {
       const virus = new Virus(this.board.board);
       viruses.push(virus);
     }
@@ -143,7 +153,7 @@ class Game {
   private spawnBlock(): boolean {
     this.nextBlock = new ActiveBlock(this.board.board);
     this.nextBlock.animating = false;
-    UI.showBlock(this.nextBlock);
+    this.UI?.showBlock(this.nextBlock);
     return true;
   }
 
@@ -236,14 +246,14 @@ class Game {
 
   public deleteVirus = (block: Virus) => {
     this.viruses = this.viruses.filter((virus) => virus.ID !== block.ID);
-    UI.updateViruses(block.ID);
+    this.UI?.updateViruses(block.ID);
     this.score += 100;
     Storage.saveHighScore(this.score);
-    UI.updateScore(this.score);
+    this.UI?.updateScore(this.score);
 
     if (this.viruses.length === 0) {
       clearInterval(this.gameInterval);
-      UI.stageCleared();
+      this.UI?.stageCleared();
     }
   };
 
@@ -256,11 +266,11 @@ class Game {
     if (this.board.board[0][x] !== 0 || this.board.board[0][x + 1]) {
       if (!this.first) {
         clearInterval(this.gameInterval);
-        UI.gameOver();
+        this.UI?.gameOver();
         return;
       }
     }
-    UI.animatePill();
+    this.UI?.animatePill();
     setTimeout(() => {
       if (this.nextBlock) {
         this.activeBlock = this.nextBlock;
@@ -521,8 +531,8 @@ class Block {
   }
 
   private renderBlock() {
-    this.element.style.left = `${this.position.x * 32}px`;
-    this.element.style.top = `${this.position.y * 32}px`;
+    this.element.style.left = `${this.position.x * 24}px`;
+    this.element.style.top = `${this.position.y * 24}px`;
     switch (this.color) {
       case Colors.BROWN:
         this.element.classList.add("brown");
@@ -590,8 +600,7 @@ class Cell extends Block {
           this.connected.falling = false;
           return;
         }
-
-        console.log("co do");
+        
         // check if there is a block below the right cell
         if (
           this.board[rightCell.position.y + 1][rightCell.position.x] instanceof
@@ -878,8 +887,8 @@ class Cell extends Block {
   }
 
   private updatePosition(block: Cell) {
-    block.element.style.left = `${block.position.x * 32}px`;
-    block.element.style.top = `${block.position.y * 32}px`;
+    block.element.style.left = `${block.position.x * 24}px`;
+    block.element.style.top = `${block.position.y * 24}px`;
   }
 }
 
@@ -916,8 +925,8 @@ enum Colors {
   BROWN,
 }
 
-export default new Game();
-export { ActiveBlock };
+export default Game;
+export { ActiveBlock, Virus };
 
 // Path: src/components/Game.ts
 // shadcn/ui

@@ -8,21 +8,28 @@ interface iStorate {
 
 class Storage implements iStorate {
   previousHighScore = 0;
+
+  UI: UI | undefined;
+
+  setUI(UI: UI) {
+    this.UI = UI;
+  }
+
   loadHighScore = () => {
     const highScore = localStorage.getItem("highScore");
-    UI.createHighScore();
+    this.UI?.createHighScore();
     if (highScore) {
-      UI.updateHighScore(Number(highScore));
+      this.UI?.updateHighScore(Number(highScore));
       this.previousHighScore = Number(highScore);
     } else {
-      UI.updateHighScore(0);
+      this.UI?.updateHighScore(0);
     }
   };
 
   saveHighScore = (score: number) => {
     if (score > this.previousHighScore) {
       localStorage.setItem("highScore", score.toString());
-      UI.updateHighScore(score);
+      this.UI?.updateHighScore(score);
     }
   };
 }

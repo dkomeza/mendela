@@ -1,6 +1,7 @@
 import Game from "./Game";
 
 class UX {
+  game: Game | undefined;
   private keys = {
     ArrowLeft: false,
     ArrowRight: false,
@@ -8,21 +9,24 @@ class UX {
     z: false,
     x: false,
   };
+  setGame(game: Game) {
+    this.game = game;
+  }
   handleKeyDown(key: string) {
     if (key === "ArrowLeft" && !this.keys.ArrowLeft) {
-      Game.move("left");
+      this.game?.move("left");
       this.keys.ArrowLeft = true;
     } else if (key === "ArrowRight" && !this.keys.ArrowRight) {
-      Game.move("right");
+      this.game?.move("right");
       this.keys.ArrowRight = true;
     } else if (key === "ArrowDown" && !this.keys.ArrowDown) {
-      Game.fastDrop();
+      this.game?.fastDrop();
       this.keys.ArrowDown = true;
     } else if (key === "z" && !this.keys.z) {
-      Game.rotate("left");
+      this.game?.rotate("left");
       this.keys.z = true;
     } else if (key === "x" && !this.keys.x) {
-      Game.rotate("right");
+      this.game?.rotate("right");
       this.keys.x = true;
     }
   }
@@ -50,6 +54,25 @@ class UX {
       const key = e.key;
       this.handleKeyUp(key);
     };
+    this.addButtons();
+  }
+
+  addButtons() {
+    document.getElementById("left")!.addEventListener("click", () => {
+      this.game?.move("left");
+    });
+    document.getElementById("right")!.addEventListener("click", () => {
+      this.game?.move("right");
+    });
+    document.getElementById("down")!.addEventListener("click", () => {
+      this.game?.fastDrop();
+    });
+    document.getElementById("rotateLeft")!.addEventListener("click", () => {
+      this.game?.rotate("left");
+    });
+    document.getElementById("rotateRight")!.addEventListener("click", () => {
+      this.game?.rotate("right");
+    });
   }
 }
 

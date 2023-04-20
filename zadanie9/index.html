@@ -8,12 +8,44 @@
   </head>
   <body>
     <div id="app">
+      <main class="nintendo-switch">
+        <aside class="actions left">
+          <i class="minus">-</i>
+          <div class="analogic">
+            <div class="center-circle"></div>
+          </div>
+          <div class="buttons arrows">
+            <button id="left"></button>
+            <button></button>
+            <button id="right"></button>
+            <button id="down"></button>
+          </div>
+          <div class="square" id="start"></div>
+        </aside>
+        <label class="middle" for="screen">
+          <div id="screen" class="screen">
+            <div id="hand">
+              <img src="/img/hands/up_1.png" />
+              <img src="/img/hands/up_2.png" />
+              <img src="/img/hands/up_3.png" />
+            </div>
+          </div>
+        </label>
+        <aside class="actions right">
+          <i class="plus">+</i>
+          <div class="analogic">
+            <div class="center-circle"></div>
+          </div>
+          <div class="buttons letters">
+            <button><span>Y</span></button>
+            <button><span>X</span></button>
+            <button id="rotateLeft"><span>A</span></button>
+            <button id="rotateRight"><span>B</span></button>
+          </div>
+          <div class="circle" id="restart"></div>
+        </aside>
+      </main>
       <div id="game"></div>
-      <div id="hand">
-        <img src="/img/hands/up_1.png" />
-        <img src="/img/hands/up_2.png" />
-        <img src="/img/hands/up_3.png" />
-      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
