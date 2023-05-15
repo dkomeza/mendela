@@ -1,0 +1,16 @@
+[package]
+name = "core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dawid Komęza <dawid.komeza@outlook.com>"]
+description = "Backend for tic-tac-toe"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/dkomeza/mendela/zadanie10"
+wasm-opt = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+console_error_panic_hook = "0.1.7"
+wasm-bindgen = "0.2.85"

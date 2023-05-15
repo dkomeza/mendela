@@ -6,6 +6,7 @@ class UI {
   highScore: HTMLDivElement | undefined;
   nextBlock = document.createElement("div");
   screen = document.getElementById("screen") as HTMLDivElement;
+  private viruses = 0;
   constructor() {
     this.nextBlock.classList.add("next-block");
     this.screen.appendChild(this.nextBlock);
@@ -48,10 +49,33 @@ class UI {
     this.virusContainer.classList.add("virus-container");
 
     this.screen.appendChild(this.virusContainer);
+
+    this.viruses = viruses.length;
+    this.updateVirusesLeft();
   };
 
   public updateViruses(ID: string) {
     document.getElementById(ID)?.remove();
+    this.viruses--;
+    this.updateVirusesLeft();
+  }
+
+  public updateVirusesLeft() {
+    const virusesLeft = document.getElementById("viruses-left");
+    if (virusesLeft) {
+      virusesLeft.innerHTML = "";
+      const virusesLeftArr = this.viruses.toString().split("");
+      while (virusesLeftArr.length < 2) {
+        virusesLeftArr.unshift("0");
+      }
+
+      for (const num of virusesLeftArr) {
+        const scoreNum = document.createElement("div");
+        scoreNum.classList.add("score-num");
+        scoreNum.innerHTML = `<img src="/img/cyfry/${num}.png" alt="${num}" />`;
+        virusesLeft.appendChild(scoreNum);
+      }
+    }
   }
 
   public createScore() {

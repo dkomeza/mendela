@@ -4,7 +4,67 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>DR Mario</title>
+    <link rel="preload" href="/img/bl_dot.png" as="image" />
+    <link rel="preload" href="/img/bl_down.png" as="image" />
+    <link rel="preload" href="/img/bl_left.png" as="image" />
+    <link rel="preload" href="/img/bl_o.png" as="image" />
+    <link rel="preload" href="/img/bl_right.png" as="image" />
+    <link rel="preload" href="/img/bl_up.png" as="image" />
+    <link rel="preload" href="/img/bl_x.png" as="image" />
+    <link rel="preload" href="/img/br_dot.png" as="image" />
+    <link rel="preload" href="/img/br_down.png" as="image" />
+    <link rel="preload" href="/img/br_left.png" as="image" />
+    <link rel="preload" href="/img/br_o.png" as="image" />
+    <link rel="preload" href="/img/br_right.png" as="image" />
+    <link rel="preload" href="/img/br_up.png" as="image" />
+    <link rel="preload" href="/img/br_x.png" as="image" />
+    <link rel="preload" href="/img/covid_blue.png" as="image" />
+    <link rel="preload" href="/img/covid_brown.png" as="image" />
+    <link rel="preload" href="/img/covid_yellow.png" as="image" />
+    <link rel="preload" href="/img/cyfry/0.png" as="image" />
+    <link rel="preload" href="/img/cyfry/1.png" as="image" />
+    <link rel="preload" href="/img/cyfry/2.png" as="image" />
+    <link rel="preload" href="/img/cyfry/3.png" as="image" />
+    <link rel="preload" href="/img/cyfry/4.png" as="image" />
+    <link rel="preload" href="/img/cyfry/5.png" as="image" />
+    <link rel="preload" href="/img/cyfry/6.png" as="image" />
+    <link rel="preload" href="/img/cyfry/7.png" as="image" />
+    <link rel="preload" href="/img/cyfry/8.png" as="image" />
+    <link rel="preload" href="/img/cyfry/9.png" as="image" />
+    <link rel="preload" href="/img/go.png" as="image" />
+    <link rel="preload" href="/img/go_dr.png" as="image" />
+    <link rel="preload" href="/img/hands/down_1.png" as="image" />
+    <link rel="preload" href="/img/hands/down_2.png" as="image" />
+    <link rel="preload" href="/img/hands/middle11.png" as="image" />
+    <link rel="preload" href="/img/hands/middle12.png" as="image" />
+    <link rel="preload" href="/img/hands/middle21.png" as="image" />
+    <link rel="preload" href="/img/hands/middle22.png" as="image" />
+    <link rel="preload" href="/img/hands/up_1.png" as="image" />
+    <link rel="preload" href="/img/hands/up_2.png" as="image" />
+    <link rel="preload" href="/img/hands/up_3.png" as="image" />
+    <link rel="preload" href="/img/lupa/bl/1.png" as="image" />
+    <link rel="preload" href="/img/lupa/bl/2.png" as="image" />
+    <link rel="preload" href="/img/lupa/bl/3.png" as="image" />
+    <link rel="preload" href="/img/lupa/bl/4.png" as="image" />
+    <link rel="preload" href="/img/lupa/br/1.png" as="image" />
+    <link rel="preload" href="/img/lupa/br/2.png" as="image" />
+    <link rel="preload" href="/img/lupa/br/3.png" as="image" />
+    <link rel="preload" href="/img/lupa/br/4.png" as="image" />
+    <link rel="preload" href="/img/lupa/yl/1.png" as="image" />
+    <link rel="preload" href="/img/lupa/yl/2.png" as="image" />
+    <link rel="preload" href="/img/lupa/yl/3.png" as="image" />
+    <link rel="preload" href="/img/lupa/yl/4.png" as="image" />
+    <link rel="preload" href="/img/pf.png" as="image" />
+    <link rel="preload" href="/img/pyt.png" as="image" />
+    <link rel="preload" href="/img/sc.png" as="image" />
+    <link rel="preload" href="/img/yl_dot.png" as="image" />
+    <link rel="preload" href="/img/yl_down.png" as="image" />
+    <link rel="preload" href="/img/yl_left.png" as="image" />
+    <link rel="preload" href="/img/yl_o.png" as="image" />
+    <link rel="preload" href="/img/yl_right.png" as="image" />
+    <link rel="preload" href="/img/yl_up.png" as="image" />
+    <link rel="preload" href="/img/yl_x.png" as="image" />
   </head>
   <body>
     <div id="app">
@@ -29,6 +89,7 @@
               <img src="/img/hands/up_2.png" />
               <img src="/img/hands/up_3.png" />
             </div>
+            <div id="viruses-left"></div>
           </div>
         </label>
         <aside class="actions right">
@@ -46,6 +107,18 @@
         </aside>
       </main>
       <div id="game"></div>
+    </div>
+    <div class="controlls">
+      <div class="">
+        <h2>Controls</h2>
+        <ul>
+          <li>left - Arrow Left</li>
+          <li>right - Arrow Right</li>
+          <li>fast - Arrow Down</li>
+          <li>rotate left - z / a</li>
+          <li>rotate right - x / b</li>
+        </ul>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

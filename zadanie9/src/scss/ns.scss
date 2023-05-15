@@ -113,6 +113,10 @@ body {
   font-size: calc(12px * 2.1);
   position: absolute;
   box-shadow: inset -8px 0 var(--transp-black);
+  transition: 0.2s;
+}
+.buttons button.pressed {
+  background-color: #494c5a;
 }
 .buttons.arrows button:after {
   content: "";

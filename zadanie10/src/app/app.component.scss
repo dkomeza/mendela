@@ -1,0 +1,35 @@
+.app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.game {
+  margin-top: 50px;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+}
+
+.block {
+  border: 1px solid #000;
+  padding: 10px;
+  width: 20px;
+  height: 20px;
+}
+
+.game div,
+.game span {
+  cursor: pointer;
+}
+
+.game .block--selected {
+  background-color: #888888;
+}

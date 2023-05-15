@@ -23,8 +23,8 @@ class Game {
   activeBlock: ActiveBlock | undefined;
   nextBlock: ActiveBlock | undefined;
   boardElement: HTMLDivElement | undefined;
-  speed = 800;
-  fastSpeed = 1000 - (1000 - this.speed) / 5;
+  speed = 800; // 0 - 999
+  fastSpeed = 950;
   UI: UI | undefined;
 
   private gameInterval: number | undefined;
@@ -59,6 +59,8 @@ class Game {
     this.UI?.createScore();
     this.gameInterval = setInterval(this.loop.bind(this), 1000 - this.speed);
     this.spawnBlock();
+    this.nextBlock!.animating = true;
+    this.animatePill();
   }
 
   removeInterval(): void {
@@ -109,39 +111,31 @@ class Game {
     if (this.nextBlock && this.nextBlock.animating) {
       return;
     } else {
-      if (this.fallingCells.length === 0) {
-        const blocksToFall = this.board.checkSameColor();
-        if (blocksToFall.length > 0) {
+      if (this.activeBlock) {
+        if (!this.activeBlock.canFall()) {
           this.stopFastDrop();
-          this.fallingCells = blocksToFall.sort(
-            (a, b) => b.position.y - a.position.y
-          );
-          const allCells = this.allCells();
-          allCells.forEach((cell) => cell.updateGraphics());
+          this.activeBlock = undefined;
         } else {
-          this.stopFastDrop();
-          this.animatePill();
+          this.activeBlock.fall();
         }
-      } else {
+      } else if (this.fallingCells.length > 0) {
+        // sort by lowest to highest
+        this.fallingCells.sort((a, b) => {
+          return b.position.y - a.position.y;
+        });
         this.moveCells();
+      } else {
+        this.fallingCells = this.board.checkSameColor();
+        if (!(this.fallingCells.length > 0)) {
+          if (this.viruses.length > 0) {
+            this.animatePill();
+          }
+        }
       }
     }
     if (this.first) {
       this.first = false;
     }
-  }
-
-  private allCells(): Cell[] {
-    const cells = [] as Cell[];
-    for (let i = 0; i < this.board.board.length; i++) {
-      for (let j = 0; j < this.board.board[i].length; j++) {
-        const cell = this.board.board[i][j];
-        if (cell instanceof Cell) {
-          cells.push(cell);
-        }
-      }
-    }
-    return cells;
   }
 
   /**
@@ -186,7 +180,7 @@ class Game {
    */
   public move(direction: Direction): void {
     if (this.activeBlock && !this.fastMode) {
-      this.activeBlock.blocks[1].move(direction);
+      this.activeBlock.move(direction);
     }
   }
 
@@ -202,7 +196,7 @@ class Game {
    */
   public rotate(direction: Direction): void {
     if (this.activeBlock && !this.fastMode) {
-      this.activeBlock.blocks[1].rotate(direction);
+      this.activeBlock.rotate(direction);
     }
   }
 
@@ -213,14 +207,16 @@ class Game {
    * @returns {void}
    */
   public fastDrop(): void {
-    this.fastMode = true;
-    if (this.gameInterval) {
-      clearInterval(this.gameInterval);
-      if (this.viruses.length > 0) {
-        this.gameInterval = setInterval(
-          this.loop.bind(this),
-          1000 - this.fastSpeed
-        );
+    if (this.activeBlock && !this.fastMode) {
+      this.fastMode = true;
+      if (this.gameInterval) {
+        clearInterval(this.gameInterval);
+        if (this.viruses.length > 0) {
+          this.gameInterval = setInterval(
+            this.loop.bind(this),
+            1000 - this.fastSpeed
+          );
+        }
       }
     }
   }
@@ -276,7 +272,6 @@ class Game {
         this.activeBlock = this.nextBlock;
         this.activeBlock.animating = false;
         this.activeBlock.applyToBoard(this.boardElement);
-        this.fallingCells.push(this.activeBlock.blocks[1]);
         this.spawnBlock();
         this.nextBlock.animating = false;
       }
@@ -291,6 +286,12 @@ class Board {
     this.board = Array(dimmensions.height)
       .fill(0)
       .map(() => Array(dimmensions.width).fill(0));
+  }
+
+  public addViruses(viruses: Virus[], boardElement: HTMLDivElement) {
+    for (const virus of viruses) {
+      virus.applyToBoard(boardElement);
+    }
   }
 
   public checkSameColor() {
@@ -325,12 +326,10 @@ class Board {
       block.delete();
     }
 
-    return this.checkFalling(deleteMap);
-  }
-
-  public addViruses(viruses: Virus[], boardElement: HTMLDivElement) {
-    for (const virus of viruses) {
-      virus.applyToBoard(boardElement);
+    if (deleteMap.size > 0) {
+      return this.checkFalling();
+    } else {
+      return [];
     }
   }
 
@@ -398,78 +397,33 @@ class Board {
     return deleteMap;
   }
 
-  private checkFalling(cells: Map<string, Block>) {
-    if (Array.from(cells.values()).length === 0) {
-      return [];
-    }
-    const fallingCells = new Map<string, Cell>();
+  private checkFalling() {
+    const falling = [] as Cell[];
 
-    const toCheck = new Map<string, Block>();
-    const checked = new Map<string, Block>();
-
-    for (const block of cells.values()) {
-      const x = block.position.x;
-      const y = block.position.y;
-
-      const cell = this.board[y - 1][x];
-      if (cell instanceof Cell) {
-        toCheck.set(cell.ID, cell);
-        fallingCells.set(cell.ID, cell);
-      }
-
-      if (block instanceof Cell && block.connected) {
-        if (!cells.has(block.connected.ID)) {
-          block.connected.connected = null;
-          if (this.canFall(block.connected)) {
-            block.connected.falling = true;
-            fallingCells.set(block.connected.ID, block.connected);
-            toCheck.set(block.connected.ID, block.connected);
+    for (let i = this.board.length - 1; i >= 0; i--) {
+      for (let j = 0; j < this.board[i].length; j++) {
+        const cell = this.board[i][j];
+        if (cell instanceof Cell) {
+          if (cell.canFall()) {
+            if (cell.connected) {
+              if (cell.connected.canFall()) {
+                falling.push(cell);
+                cell.connected.falling = true;
+                cell.connected = null;
+                cell.updateGraphics();
+              }
+            } else {
+              falling.push(cell);
+              cell.updateGraphics();
+              cell.falling = true;
+            }
           }
         }
       }
     }
 
-    while (toCheck.size > 0) {
-      const block = toCheck.values().next().value;
-      toCheck.delete(block.ID);
-      checked.set(block.ID, block);
-
-      const y = block.position.y;
-      if (
-        y - 1 >= 0 &&
-        this.board[y - 1] &&
-        this.board[y - 1][block.position.x] instanceof Block
-      ) {
-        const cell = this.board[y - 1][block.position.x];
-        if (cell instanceof Cell && !checked.has(cell.ID)) {
-          cell.falling = true;
-          toCheck.set(cell.ID, cell);
-          fallingCells.set(cell.ID, cell);
-          if (cell.connected && !checked.has(cell.connected.ID)) {
-            cell.connected.connected = null;
-            cell.connected.falling = true;
-            toCheck.set(cell.connected.ID, cell.connected);
-            fallingCells.set(cell.connected.ID, cell.connected);
-          }
-          cell.connected = null;
-        }
-      }
-    }
-    return [...fallingCells.values()];
+    return falling;
   }
-
-  private canFall(block: Block) {
-    if (block.position.y === this.board.length - 1) {
-      return false;
-    }
-
-    if (this.board[block.position.y + 1][block.position.x] instanceof Block) {
-      return false;
-    }
-
-    return true;
-  }
-  // ...
 }
 
 class ActiveBlock {
@@ -478,6 +432,7 @@ class ActiveBlock {
     1: Cell;
     2: Cell;
   };
+  board: tBoard;
 
   constructor(board: tBoard) {
     const x = Math.floor((board[0].length - 1) / 2);
@@ -489,6 +444,8 @@ class ActiveBlock {
     };
     this.blocks[1].connectBlock(this.blocks[2]);
     this.blocks[2].connectBlock(this.blocks[1]);
+
+    this.board = board;
   }
 
   public applyToBoard(boardElement: HTMLDivElement | undefined) {
@@ -497,6 +454,209 @@ class ActiveBlock {
         block.applyToBoard(boardElement);
       }
     }
+  }
+
+  public fall() {
+    if (!this.canFall()) {
+      return;
+    }
+
+    this.board[this.blocks[1].position.y][this.blocks[1].position.x] = 0;
+    this.board[this.blocks[2].position.y][this.blocks[2].position.x] = 0;
+
+    this.blocks[1].position.y++;
+    this.blocks[2].position.y++;
+
+    this.board[this.blocks[1].position.y][this.blocks[1].position.x] =
+      this.blocks[1];
+    this.board[this.blocks[2].position.y][this.blocks[2].position.x] =
+      this.blocks[2];
+
+    this.blocks[1].updatePosition(this.blocks[1]);
+    this.blocks[2].updatePosition(this.blocks[2]);
+  }
+
+  public canFall() {
+    if (this.blocks[1].canFall() && this.blocks[2].canFall()) {
+      return true;
+    }
+    this.blocks[1].falling = false;
+    this.blocks[2].falling = false;
+    return false;
+  }
+
+  public move(direction: "left" | "right") {
+    const moveDirection = direction === "left" ? -1 : 1;
+    if (this.canMove(direction)) {
+      // update board
+      this.board[this.blocks[1].position.y][this.blocks[1].position.x] = 0;
+      this.board[this.blocks[2].position.y][this.blocks[2].position.x] = 0;
+
+      this.board[this.blocks[1].position.y][
+        this.blocks[1].position.x + moveDirection
+      ] = this.blocks[1];
+      this.board[this.blocks[2].position.y][
+        this.blocks[2].position.x + moveDirection
+      ] = this.blocks[2];
+
+      // move
+      this.blocks[1].position.x += moveDirection;
+      this.blocks[1].updatePosition(this.blocks[1]);
+      this.blocks[2].position.x += moveDirection;
+      this.blocks[2].updatePosition(this.blocks[2]);
+    }
+  }
+
+  private canMove(direction: "left" | "right") {
+    const moveDirection = direction === "left" ? -1 : 1;
+
+    const sameRow = this.blocks[1].position.y === this.blocks[2].position.y;
+
+    if (sameRow) {
+      const leftBlock =
+        this.blocks[1].position.x < this.blocks[2].position.x
+          ? this.blocks[1]
+          : this.blocks[2];
+      const rightBlock =
+        this.blocks[1].position.x > this.blocks[2].position.x
+          ? this.blocks[1]
+          : this.blocks[2];
+
+      if (leftBlock.position.x + moveDirection < 0) {
+        return false;
+      }
+
+      if (rightBlock.position.x + moveDirection >= this.board[0].length) {
+        return false;
+      }
+
+      if (direction === "left") {
+        if (this.board[leftBlock.position.y][leftBlock.position.x - 1]) {
+          return false;
+        }
+      } else {
+        if (this.board[rightBlock.position.y][rightBlock.position.x + 1]) {
+          return false;
+        }
+      }
+    } else {
+      const topBlock =
+        this.blocks[1].position.y < this.blocks[2].position.y
+          ? this.blocks[1]
+          : this.blocks[2];
+      const bottomBlock =
+        this.blocks[1].position.y > this.blocks[2].position.y
+          ? this.blocks[1]
+          : this.blocks[2];
+
+      if (bottomBlock.position.x + moveDirection >= this.board[0].length) {
+        return false;
+      }
+
+      if (bottomBlock.position.x + moveDirection < 0) {
+        return false;
+      }
+
+      if (
+        this.board[topBlock.position.y][topBlock.position.x + moveDirection]
+      ) {
+        return false;
+      }
+
+      if (
+        this.board[bottomBlock.position.y][
+          bottomBlock.position.x + moveDirection
+        ]
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public rotate(direction: "left" | "right") {
+    const previousPosition1 = { ...this.blocks[1].position };
+    const previousPosition2 = { ...this.blocks[2].position };
+
+    const sameRow = this.blocks[1].position.y === this.blocks[2].position.y;
+
+    if (sameRow) {
+      const leftBlock =
+        this.blocks[1].position.x < this.blocks[2].position.x
+          ? this.blocks[1]
+          : this.blocks[2];
+      const rightBlock =
+        this.blocks[1].position.x > this.blocks[2].position.x
+          ? this.blocks[1]
+          : this.blocks[2];
+
+      if (direction === "left") {
+        if (rightBlock.position.x - 1 < 0 || rightBlock.position.y - 1 < 0) {
+          return;
+        }
+        rightBlock.position.x--;
+        rightBlock.position.y--;
+      }
+      if (direction === "right") {
+        if (rightBlock.position.x - 1 < 0 || leftBlock.position.y - 1 < 0) {
+          return;
+        }
+        rightBlock.position.x--;
+        leftBlock.position.y--;
+      }
+    } else {
+      const topBlock =
+        this.blocks[1].position.y < this.blocks[2].position.y
+          ? this.blocks[1]
+          : this.blocks[2];
+      const bottomBlock =
+        this.blocks[1].position.y > this.blocks[2].position.y
+          ? this.blocks[1]
+          : this.blocks[2];
+
+      if (direction === "left") {
+        if (bottomBlock.position.x + 1 > this.board[0].length - 1) {
+          topBlock.position.x--;
+          bottomBlock.position.x--;
+        }
+        topBlock.position.y++;
+        bottomBlock.position.x++;
+      }
+      if (direction === "right") {
+        if (topBlock.position.x + 1 > this.board[0].length - 1) {
+          topBlock.position.x--;
+          bottomBlock.position.x--;
+        }
+        topBlock.position.x++;
+        topBlock.position.y++;
+      }
+    }
+
+    this.board[previousPosition1.y][previousPosition1.x] = 0;
+    this.board[previousPosition2.y][previousPosition2.x] = 0;
+
+    if (
+      this.board[this.blocks[1].position.y][this.blocks[1].position.x] ||
+      this.board[this.blocks[2].position.y][this.blocks[2].position.x]
+    ) {
+      this.blocks[1].position = previousPosition1;
+      this.blocks[2].position = previousPosition2;
+
+      this.board[previousPosition1.y][previousPosition1.x] = this.blocks[1];
+      this.board[previousPosition2.y][previousPosition2.x] = this.blocks[2];
+
+      return;
+    }
+
+    this.board[this.blocks[1].position.y][this.blocks[1].position.x] =
+      this.blocks[1];
+    this.board[this.blocks[2].position.y][this.blocks[2].position.x] =
+      this.blocks[2];
+
+    this.blocks[1].updatePosition(this.blocks[1]);
+    this.blocks[2].updatePosition(this.blocks[2]);
+    this.blocks[1].updateGraphics();
   }
 }
 
@@ -559,7 +719,6 @@ class Block {
 }
 
 class Cell extends Block {
-  private rotation: 0 | 1 | 2 | 3 = 0;
   public connected: Cell | null = null;
   public falling = true;
 
@@ -570,282 +729,25 @@ class Cell extends Block {
   }
 
   public fall() {
-    if (this.connected) {
-      const bottomCell =
-        this.position.y >= this.connected.position.y ? this : this.connected;
-      const topCell =
-        this.position.y < this.connected.position.y ? this : this.connected;
-      const leftCell =
-        this.position.x <= this.connected.position.x ? this : this.connected;
-      const rightCell =
-        this.position.x > this.connected.position.x ? this : this.connected;
-
-      const sameRow = bottomCell.position.y === topCell.position.y;
-      const sameColumn = leftCell.position.x === rightCell.position.x;
-
-      if (sameRow) {
-        // check if on the bottom
-        if (bottomCell.position.y === this.board.length - 1) {
-          this.falling = false;
-          this.connected.falling = false;
-          return;
-        }
-
-        // check if there is a block below the left cell
-        if (
-          this.board[leftCell.position.y + 1][leftCell.position.x] instanceof
-          Block
-        ) {
-          this.falling = false;
-          this.connected.falling = false;
-          return;
-        }
-        
-        // check if there is a block below the right cell
-        if (
-          this.board[rightCell.position.y + 1][rightCell.position.x] instanceof
-          Block
-        ) {
-          this.falling = false;
-          this.connected.falling = false;
-          return;
-        }
-      } else if (sameColumn) {
-        // check if on the bottom
-        if (bottomCell.position.y === this.board.length - 1) {
-          this.falling = false;
-          this.connected.falling = false;
-          return;
-        }
-
-        // check if there is a block below the bottom cell
-        if (
-          this.board[bottomCell.position.y + 1][
-            bottomCell.position.x
-          ] instanceof Block
-        ) {
-          this.falling = false;
-          this.connected.falling = false;
-          return;
-        }
+    if (!this.canFall()) {
+      this.falling = false;
+      if (this.connected) {
+        this.connected.falling = false;
       }
-
-      // update board
-      this.board[this.position.y][this.position.x] = 0;
-      this.board[this.connected.position.y][this.connected.position.x] = 0;
-      this.board[this.position.y + 1][this.position.x] = this;
-      this.board[this.connected.position.y + 1][this.connected.position.x] =
-        this.connected;
-
-      // move down
-      this.position.y += 1;
-      this.updatePosition(this);
-      this.connected.position.y += 1;
-      this.updatePosition(this.connected);
-    } else {
-      // check if on the bottom
-      if (this.position.y === this.board.length - 1) {
-        this.falling = false;
-        return;
-      }
-
-      // check if there is a block below
-      if (this.board[this.position.y + 1][this.position.x] instanceof Block) {
-        this.falling = false;
-        return;
-      }
-
-      // update board
-      this.board[this.position.y][this.position.x] = 0;
-      this.board[this.position.y + 1][this.position.x] = this;
-
-      // move down
-      this.position.y += 1;
-      this.updatePosition(this);
-    }
-  }
-
-  public move(direction: Direction) {
-    const moveDirection = direction === "left" ? -1 : 1;
-    if (!this.connected || !this.falling) {
       return;
     }
-    const bottomCell =
-      this.position.y >= this.connected.position.y ? this : this.connected;
-    const topCell =
-      this.position.y < this.connected.position.y ? this : this.connected;
-    const leftCell =
-      this.position.x <= this.connected.position.x ? this : this.connected;
-    const rightCell =
-      this.position.x > this.connected.position.x ? this : this.connected;
 
-    const sameRow = bottomCell.position.y === topCell.position.y;
-    const sameColumn = leftCell.position.x === rightCell.position.x;
-
-    if (sameRow) {
-      if (direction === "left") {
-        if (leftCell.position.x === 0) {
-          return;
-        }
-        if (
-          this.board[leftCell.position.y][
-            leftCell.position.x + moveDirection
-          ] instanceof Block
-        ) {
-          return;
-        }
-      } else if (direction === "right") {
-        if (rightCell.position.x === this.board[0].length - 1) {
-          return;
-        }
-        if (
-          this.board[rightCell.position.y][
-            rightCell.position.x + moveDirection
-          ] instanceof Block
-        ) {
-          return;
-        }
-      }
-    } else if (sameColumn) {
-      if (direction === "left") {
-        if (leftCell.position.x === 0) {
-          return;
-        }
-      } else if (direction === "right") {
-        if (rightCell.position.x === this.board[0].length - 1) {
-          return;
-        }
-      }
-      const topClear = !(
-        this.board[topCell.position.y][
-          topCell.position.x + moveDirection
-        ] instanceof Block
-      );
-      const bottomClear = !(
-        this.board[bottomCell.position.y][
-          bottomCell.position.x + moveDirection
-        ] instanceof Block
-      );
-
-      if (!topClear || !bottomClear) {
-        return;
-      }
+    if (this.connected) {
+      this.connected = null;
     }
 
     // update board
     this.board[this.position.y][this.position.x] = 0;
-    this.board[this.connected.position.y][this.connected.position.x] = 0;
-    this.board[this.position.y][this.position.x + moveDirection] = this;
-    this.board[this.connected.position.y][
-      this.connected.position.x + moveDirection
-    ] = this.connected;
+    this.board[this.position.y + 1][this.position.x] = this;
 
-    // move
-    this.position.x += moveDirection;
+    // move down
+    this.position.y += 1;
     this.updatePosition(this);
-    this.connected.position.x += moveDirection;
-    this.updatePosition(this.connected);
-  }
-
-  public rotate(direction: Direction) {
-    const rotateDirection = direction === "left" ? -1 : 1;
-
-    if (!this.connected || !this.falling) {
-      return;
-    }
-
-    const previousPosition = {
-      x: this.position.x,
-      y: this.position.y,
-    };
-    const previousConnectedPosition = {
-      x: this.connected.position.x,
-      y: this.connected.position.y,
-    };
-
-    this.rotation += rotateDirection;
-
-    if (this.rotation === 4) {
-      this.rotation = 0;
-    } else if (this.rotation === -1) {
-      this.rotation = 3;
-    }
-
-    this.rotation = this.rotation as 0 | 1 | 2 | 3;
-
-    const bottomCell =
-      this.position.y >= this.connected.position.y ? this : this.connected;
-    const topCell =
-      this.position.y < this.connected.position.y ? this : this.connected;
-    const leftCell =
-      this.position.x <= this.connected.position.x ? this : this.connected;
-    const rightCell =
-      this.position.x > this.connected.position.x ? this : this.connected;
-
-    const sameRow = bottomCell.position.y === topCell.position.y;
-    const sameColumn = leftCell.position.x === rightCell.position.x;
-
-    if (sameRow) {
-      if (direction === "left") {
-        rightCell.position.x -= 1;
-        rightCell.position.y -= 1;
-        if (rightCell.position.x < 0 || rightCell.position.y < 0) {
-          this.rotation -= rotateDirection;
-          this.position = previousPosition;
-          this.connected.position = previousConnectedPosition;
-          return;
-        }
-      }
-      if (direction === "right") {
-        rightCell.position.x -= 1;
-        leftCell.position.y -= 1;
-        if (rightCell.position.x < 0 || leftCell.position.y < 0) {
-          this.rotation -= rotateDirection;
-          this.position = previousPosition;
-          this.connected.position = previousConnectedPosition;
-          return;
-        }
-      }
-    }
-    if (sameColumn) {
-      if (direction === "left") {
-        topCell.position.y += 1;
-        bottomCell.position.x += 1;
-        if (bottomCell.position.x > this.board[0].length - 1) {
-          topCell.position.x -= 1;
-          bottomCell.position.x -= 1;
-        }
-      }
-      if (direction === "right") {
-        topCell.position.y += 1;
-        topCell.position.x += 1;
-        if (topCell.position.x > this.board[0].length - 1) {
-          topCell.position.x -= 1;
-          bottomCell.position.x -= 1;
-        }
-      }
-    }
-
-    this.board[previousPosition.y][previousPosition.x] = 0;
-    this.board[previousConnectedPosition.y][previousConnectedPosition.x] = 0;
-
-    if (
-      this.board[this.position.y][this.position.x] instanceof Block ||
-      this.board[this.connected.position.y][
-        this.connected.position.x
-      ] instanceof Block
-    ) {
-      this.rotation -= rotateDirection;
-      this.position = previousPosition;
-      this.connected.position = previousConnectedPosition;
-    }
-
-    this.board[this.position.y][this.position.x] = this;
-    this.board[this.connected.position.y][this.connected.position.x] =
-      this.connected;
-    this.updatePosition(this);
-    this.updatePosition(this.connected);
-    this.updateGraphics();
   }
 
   public connectBlock(block: Cell) {
@@ -886,7 +788,28 @@ class Cell extends Block {
     }
   }
 
-  private updatePosition(block: Cell) {
+  public canFall() {
+    if (this.position.y + 1 >= this.board.length) {
+      return false;
+    }
+
+    // check block below
+    if (this.board[this.position.y + 1][this.position.x] !== 0) {
+      const checkBlock = this.board[this.position.y + 1][this.position.x];
+
+      if (checkBlock instanceof Cell) {
+        if (!checkBlock.falling) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public updatePosition(block: Cell) {
     block.element.style.left = `${block.position.x * 24}px`;
     block.element.style.top = `${block.position.y * 24}px`;
   }
@@ -926,7 +849,7 @@ enum Colors {
 }
 
 export default Game;
-export { ActiveBlock, Virus };
-
+export { ActiveBlock, Virus, Block, Cell, Colors, Board };
+export type { tBoard, tCell, iPosition, Direction };
 // Path: src/components/Game.ts
 // shadcn/ui

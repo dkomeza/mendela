@@ -1,12 +1,12 @@
 import UI from "./UI";
 
-interface iStorate {
+interface iStorage {
   previousHighScore: number;
   loadHighScore: () => void;
   saveHighScore: (score: number) => void;
 }
 
-class Storage implements iStorate {
+class Storage implements iStorage {
   previousHighScore = 0;
 
   UI: UI | undefined;
@@ -35,3 +35,5 @@ class Storage implements iStorate {
 }
 
 export default new Storage();
+export { Storage };
+export type { iStorage };

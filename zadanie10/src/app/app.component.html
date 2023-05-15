@@ -1,0 +1,73 @@
+<div class="app">
+  <div class="form">
+    <div class="form__header">
+      <h1>OX</h1>
+    </div>
+    <div class="input__container">
+      <div class="input__group">
+        <label for="width">Width: </label>
+        <input type="number" name="width" id="width" [(ngModel)]="width" />
+      </div>
+      <div class="input__group">
+        <label for="height">Height: </label>
+        <input type="number" name="height" id="height" [(ngModel)]="height" />
+      </div>
+      <div class="input__group">
+        <label for="points">Points: </label>
+        <input type="number" name="points" id="points" [(ngModel)]="points" />
+      </div>
+      <div class="input__group">
+        <label for="turn">Who starts: </label>
+        <select name="turn" id="turn" [(ngModel)]="start">
+          <option value="1">Player</option>
+          <option value="2">Computer</option>
+        </select>
+      </div>
+    </div>
+    <div class="button__container">
+      <button (click)="startGame()">Start</button>
+    </div>
+  </div>
+  <div class="score">
+    <h2>Score</h2>
+    <div class="row">
+      <div class="col">
+        <h3>Player</h3>
+        <h4>{{ score.player }}</h4>
+      </div>
+      <div class="col">
+        <h3>Computer</h3>
+        <h4>{{ score.computer }}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="game grid">
+    <div
+      class="row"
+      style="justify-content: space-between; padding-inline: 30px"
+    >
+      <div
+        *ngFor="let block of board[0]; let colIndex = index"
+        style="width: 20px; text-align: center"
+      >
+        {{ colIndex }}
+      </div>
+    </div>
+    <div class="row" *ngFor="let row of board; let rowIndex = index">
+      <div style="width: 20px; text-align: center; padding-top: 15px">
+        {{ rowIndex }}
+      </div>
+      <div
+        class="block"
+        *ngFor="let block of row; let colIndex = index"
+        (click)="selectCell(rowIndex, colIndex)"
+        [class.block--selected]="block > 3"
+      >
+        <span [hidden]="!(block === 1)">O</span>
+        <span [hidden]="!(block === 5)">O</span>
+        <span [hidden]="!(block === 2)">X</span>
+        <span [hidden]="!(block === 6)">X</span>
+      </div>
+    </div>
+  </div>
+</div>
