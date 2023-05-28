@@ -1,6 +1,17 @@
 import { Component } from '@angular/core';
 import init, { eval_moves } from '../assets/core/pkg/core';
 
+interface Move {
+  x: number;
+  y: number;
+  score: number;
+}
+
+interface Cell {
+  value: number;
+  score: number;
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -12,23 +23,34 @@ export class AppComponent {
   points = 5;
   start = 1;
 
-  board: number[][] = [];
+  board: Cell[][] = [];
 
   playerTurn = true;
 
   leftSquares = 0;
+
+  aiTurn = 1;
+  aiInterval: any;
+
+  startTime = 0;
 
   score = {
     player: 0,
     computer: 0,
   };
 
+  times: number[] = [];
+
   async startGame() {
+    clearInterval(this.aiTurn);
     this.board = [];
     for (let i = 0; i < this.height; i++) {
       this.board[i] = [];
       for (let j = 0; j < this.width; j++) {
-        this.board[i][j] = 0;
+        this.board[i][j] = {
+          value: 0,
+          score: 0,
+        };
       }
     }
     this.leftSquares = this.height * this.width;
@@ -38,6 +60,7 @@ export class AppComponent {
       computer: 0,
     };
     await init('assets/core/pkg/core_bg.wasm');
+    this.startTime = performance.now();
     if (this.start == 2) {
       console.log('start');
       this.playerTurn = false;
@@ -46,15 +69,25 @@ export class AppComponent {
   }
 
   selectCell(row: number, col: number) {
-    if (this.playerTurn && this.board[row][col] === 0 && this.leftSquares > 0) {
-      this.board[row][col] = 1;
+    if (
+      this.playerTurn &&
+      this.board[row][col].value === 0 &&
+      this.leftSquares > 0
+    ) {
+      this.board[row][col] = {
+        value: 1,
+        score: this.board[row][col].score,
+      };
       this.playerTurn = false;
       this.leftSquares--;
       const found = this.checkForLine();
       if (found.length > 0) {
         this.score[found[0].value === 1 ? 'player' : 'computer']++;
         for (const { x, y } of found) {
-          this.board[y][x] = this.board[y][x] | 4;
+          this.board[y][x] = {
+            value: this.board[y][x].value | 4,
+            score: this.board[y][x].score,
+          };
         }
         if (this.checkForWin()) return;
       }
@@ -63,61 +96,90 @@ export class AppComponent {
       } else {
         if (!this.checkForWin()) {
           if (this.score.player > this.score.computer) {
-            alert('You win!');
+            const avg =
+              this.times.reduce((a, b) => a + b, 0) / this.times.length;
+            alert(`Player won!, time: ${Math.floor(avg)}ms`);
           } else if (this.score.player < this.score.computer) {
-            alert('You lose!');
+            const avg =
+              this.times.reduce((a, b) => a + b, 0) / this.times.length;
+            alert(`Computer won!, time: ${Math.floor(avg)}ms`);
           } else {
-            alert('Draw!');
+            const avg =
+              this.times.reduce((a, b) => a + b, 0) / this.times.length;
+            alert(`Draw!, time: ${Math.floor(avg)}ms`);
           }
-
         }
       }
     }
   }
 
   generateComputerMove() {
-    const convertedBoard: number[] = this.board.flat();
-    const move = eval_moves(convertedBoard, this.board[0].length);
+    const convertedBoard: number[] = this.board.flat().map((x) => x.value);
+    const moves = eval_moves(convertedBoard, this.board[0].length, 2) as Move[];
+    const move = moves[0];
     if (move.score < 0) {
       let x = Math.floor(Math.random() * this.board[0].length);
       let y = Math.floor(Math.random() * this.board.length);
-      while (this.board[y][x] !== 0) {
+      while (this.board[y][x].value !== 0) {
         x = Math.floor(Math.random() * this.board[0].length);
         y = Math.floor(Math.random() * this.board.length);
       }
-      this.board[y][x] = 2;
+      this.board[y][x] = {
+        value: 2,
+        score: this.board[y][x].score,
+      };
     } else {
-      this.board[move.y][move.x] = 2;
+      this.board[move.y][move.x] = {
+        value: 2,
+        score: this.board[move.y][move.x].score,
+      };
     }
     const found = this.checkForLine();
     if (found.length > 0) {
       this.score[found[0].value === 1 ? 'player' : 'computer']++;
       for (const { x, y } of found) {
-        this.board[y][x] = this.board[y][x] | 4;
+        this.board[y][x] = {
+          value: this.board[y][x].value | 4,
+          score: this.board[y][x].score,
+        };
       }
     }
     this.checkForWin();
+    // this.showScore(moves);
     this.leftSquares--;
     this.playerTurn = true;
+
+    if (this.leftSquares === 0 && !this.checkForWin()) {
+      if (this.score.player > this.score.computer) {
+        const avg = this.times.reduce((a, b) => a + b, 0) / this.times.length;
+        alert(`Player won!, time: ${Math.floor(avg)}ms`);
+      } else if (this.score.player < this.score.computer) {
+        const avg = this.times.reduce((a, b) => a + b, 0) / this.times.length;
+        alert(`Computer won!, time: ${Math.floor(avg)}ms`);
+      } else {
+        const avg = this.times.reduce((a, b) => a + b, 0) / this.times.length;
+        alert(`Draw!, time: ${Math.floor(avg)}ms`);
+      }
+    }
   }
 
   private checkForWin() {
     if (this.score.player >= this.points) {
-      alert('Player won!');
-      this.startGame();
+      const avg = this.times.reduce((a, b) => a + b, 0) / this.times.length;
+      alert(`Player won!, time: ${Math.floor(avg)}ms`);
       return true;
     } else if (this.score.computer >= this.points) {
-      alert('Computer won!');
-      this.startGame();
+      const avg = this.times.reduce((a, b) => a + b, 0) / this.times.length;
+      alert(`Computer won!, time: ${Math.floor(avg)}ms`);
       return true;
     }
     return false;
   }
 
-  checkForLine(board: number[][] = this.board) {
+  checkForLine(board: Cell[][] = this.board) {
     // check for horizontal lines
     for (let y = 0; y < board.length; y++) {
-      const row = board[y].map((x, i) => ({ x: i, y, value: x }));
+      const row = board[y].map((x, i) => ({ x: i, y, value: x.value }));
       const found = this.checkLine(row);
 
       if (found.length > 0) {
@@ -127,7 +189,7 @@ export class AppComponent {
 
     // check for vertical lines
     for (let x = 0; x < board[0].length; x++) {
-      const col = board.map((y, i) => ({ x, y: i, value: y[x] }));
+      const col = board.map((y, i) => ({ x, y: i, value: y[x].value }));
       const found = this.checkLine(col);
 
       if (found.length > 0) {
@@ -143,7 +205,7 @@ export class AppComponent {
         let y1 = y;
 
         while (x1 < board[0].length && y1 < board.length) {
-          const block = { x: x1, y: y1, value: board[y1][x1] };
+          const block = { x: x1, y: y1, value: board[y1][x1].value };
           line.push(block);
           x1++;
           y1++;
@@ -158,8 +220,13 @@ export class AppComponent {
         x1 = x;
         y1 = y;
 
-        while (x1 >= 0 && y1 >= 0) {
-          const block = { x: x1, y: y1, value: board[y1][x1] };
+        while (
+          x1 >= 0 &&
+          y1 >= 0 &&
+          x1 < board[0].length &&
+          y1 < board.length
+        ) {
+          const block = { x: x1, y: y1, value: board[y1][x1].value };
           line.push(block);
           x1++;
           y1--;
@@ -202,5 +269,28 @@ export class AppComponent {
     }
 
     return found;
+  }
+
+  showScore(moves: Move[]) {
+    this.board.forEach((row, y) => {
+      row.forEach((cell, x) => {
+        cell.score = 0;
+      });
+    });
+    const max = moves[0].score;
+    const min = moves[moves.length - 1].score;
+
+    const score = (x: number) => {
+      return x === 0 ? 0 : (x - min) / (max - min);
+    };
+
+    for (const move of moves) {
+      const x = move.x;
+      const y = move.y;
+      this.board[y][x] = {
+        value: this.board[y][x].value,
+        score: score(move.score),
+      };
+    }
   }
 }

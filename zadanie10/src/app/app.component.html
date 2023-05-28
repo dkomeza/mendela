@@ -61,12 +61,17 @@
         class="block"
         *ngFor="let block of row; let colIndex = index"
         (click)="selectCell(rowIndex, colIndex)"
-        [class.block--selected]="block > 3"
+        [class.block--selected]="block.value > 3"
+        [class.block--score]="block.score > 0"
+        [ngStyle]="{
+          'background-color':
+            block.score > 0 ? 'rgba(0, 255, 0, ' + block.score + ')' : ''
+        }"
       >
-        <span [hidden]="!(block === 1)">O</span>
-        <span [hidden]="!(block === 5)">O</span>
-        <span [hidden]="!(block === 2)">X</span>
-        <span [hidden]="!(block === 6)">X</span>
+        <span [hidden]="!(block.value === 1)">O</span>
+        <span [hidden]="!(block.value === 5)">O</span>
+        <span [hidden]="!(block.value === 2)">X</span>
+        <span [hidden]="!(block.value === 6)">X</span>
       </div>
     </div>
   </div>
