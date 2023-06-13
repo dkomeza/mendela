@@ -1,0 +1,114 @@
+.choose__year {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: max-content;
+  margin: 0 auto;
+  button {
+    background-color: #1f1f1f;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 0 0.5rem #adadad42;
+    transition: 0.2s;
+    font-size: 1.5rem;
+    color: #adadad;
+    font-weight: 600;
+    cursor: pointer;
+    &:hover {
+      box-shadow: 0 0 1rem #adadad42;
+      scale: 1.02;
+      transform: translateY(-0.125rem);
+    }
+  }
+
+  button.back {
+    background-color: #aa0000;
+    box-shadow: 0 0 0.5rem #aa0000aa;
+    &:hover {
+      box-shadow: 0 0 1rem #aa0000aa;
+      scale: 1.02;
+      transform: translateY(-0.125rem);
+    }
+  }
+
+  .button_wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    column-gap: 1rem;
+  }
+
+  h1 {
+    color: #adadad;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  button.all {
+    width: 100%;
+  }
+}
+
+.table__wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 2rem;
+  h2 {
+    font-size: 1.5rem;
+    color: #adadad;
+    text-align: center;
+  }
+  table {
+    border: none;
+    outline: none;
+    border-spacing: 0;
+    color: #adadad;
+    border: 1px solid #adadad42;
+    border-radius: 1rem;
+    overflow: hidden;
+    tr {
+      transition: 0.2s;
+      border-bottom: 1px solid #adadad42;
+      &:last-child {
+        border-bottom: none;
+      }
+      &:nth-child(2n) {
+        background-color: #1f1f1f;
+      }
+      &:hover {
+        filter: brightness(1.2);
+      }
+
+      td {
+        padding: 1rem 2rem;
+        text-transform: capitalize;
+        border-left: 1px solid #adadad42;
+
+        &:first-child {
+          border-left: none;
+        }
+        a {
+          color: #adadad;
+        }
+        img {
+          display: block;
+          border-radius: 0.5rem;
+        }
+      }
+
+      th {
+        font-size: 1.5rem;
+        padding: 1rem 2rem;
+        border-left: 1px solid #adadad42;
+
+        &:first-child {
+          border-left: none;
+        }
+      }
+    }
+  }
+}

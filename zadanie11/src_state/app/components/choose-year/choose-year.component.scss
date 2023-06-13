@@ -1,0 +1,51 @@
+.choose__year {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  button {
+    background-color: #1f1f1f;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 0 0.5rem #adadad42;
+    transition: 0.2s;
+    font-size: 1.5rem;
+    color: #adadad;
+    font-weight: 600;
+    cursor: pointer;
+    &:hover {
+      box-shadow: 0 0 1rem #adadad42;
+      scale: 1.02;
+      transform: translateY(-0.125rem);
+    }
+  }
+
+  button.back {
+    background-color: #aa0000;
+    box-shadow: 0 0 0.5rem #aa0000aa;
+    &:hover {
+      box-shadow: 0 0 1rem #aa0000aa;
+      scale: 1.02;
+      transform: translateY(-0.125rem);
+    }
+  }
+
+  .button_wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    column-gap: 1rem;
+  }
+
+  h1 {
+    color: #adadad;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  button.all {
+    width: 100%;
+  }
+}

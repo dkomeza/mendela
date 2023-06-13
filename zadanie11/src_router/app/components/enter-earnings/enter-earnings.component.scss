@@ -1,0 +1,29 @@
+.earning__wrapper {
+  display: flex;
+  color: #adadad;
+  flex-direction: column;
+  align-items: center;
+  label {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  p {
+    display: flex;
+    align-items: center;
+    column-gap: 0.25rem;
+    input {
+      background-color: #1f1f1f;
+      outline: none;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      color: #adadad;
+    }
+  }
+  .earning__display {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+}

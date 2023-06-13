@@ -145,7 +145,7 @@ export class AppComponent {
       }
     }
     this.checkForWin();
-    // this.showScore(moves);
+    this.showScore(moves);
     this.leftSquares--;
     this.playerTurn = true;
 

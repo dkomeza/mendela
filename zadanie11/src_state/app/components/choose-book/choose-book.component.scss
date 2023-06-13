@@ -1,0 +1,25 @@
+.image-grid {
+  columns: 2;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 1rem;
+  div {
+    padding: 0.5rem;
+    background-color: #1f1f1f;
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 0 0.5rem #adadad42;
+    transition: 0.2s;
+    img {
+      display: block;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    &:hover {
+      box-shadow: 0 0 1rem #adadad42;
+      scale: 1.02;
+      transform: translateY(-0.125rem);
+    }
+  }
+}

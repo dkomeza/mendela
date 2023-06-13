@@ -1,0 +1,7 @@
+<div class="main__wrapper">
+  <app-clock></app-clock>
+  <app-enter-earnings *ngIf="service.showEarnings"></app-enter-earnings>
+  <app-choose-book *ngIf="service.showBooks"></app-choose-book>
+  <app-choose-year *ngIf="service.showYears"></app-choose-year>
+  <app-show-books *ngIf="service.showBook"></app-show-books>
+</div>

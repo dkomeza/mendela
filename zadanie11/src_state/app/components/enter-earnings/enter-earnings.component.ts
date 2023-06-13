@@ -1,0 +1,63 @@
+import { Component } from '@angular/core';
+import { Service } from '../../services/service.service';
+
+@Component({
+  selector: 'app-enter-earnings',
+  templateUrl: './enter-earnings.component.html',
+  styleUrls: ['./enter-earnings.component.scss'],
+})
+export class WpiszZarobkiComponent {
+  number: string;
+  specialNumber: boolean = false;
+  isDot: boolean = false;
+
+  constructor(private service: Service) {
+    this.number = '';
+  }
+  onInput(event: any) {
+    const value = event.target.value;
+
+    if (value == '666.666') {
+      this.number = '666.666';
+      event.target.value = this.number;
+      console.log('666.666');
+      this.specialNumber = true;
+      this.service.showEarnings = false;
+      this.service.showBooks = true;
+    }
+
+    if (!value.includes('.')) {
+      this.isDot = false;
+    }
+
+    const lastChar = value.charAt(value.length - 1);
+    if (!isNaN(parseInt(lastChar))) {
+      if (value.includes('.')) {
+        const index = value.indexOf('.');
+        const decimal = value.slice(index + 1);
+        if (decimal.length <= 3) {
+          this.number = value;
+        } else {
+          this.number = value.slice(0, value.length - 1);
+          event.target.value = this.number;
+        }
+      } else {
+        this.number = value;
+      }
+    } else if (lastChar === '.' && value.length > 1 && this.isDot == false) {
+      if (!this.isDot) {
+        this.isDot = true;
+        this.number = value;
+      }
+    } else {
+      this.number = value.slice(0, value.length - 1);
+      event.target.value = this.number;
+    }
+
+    if (event.target.value == '666.666') {
+      this.service.specialNumber = true;
+      this.service.showEarnings = false;
+      this.service.showBooks = true;
+    }
+  }
+}

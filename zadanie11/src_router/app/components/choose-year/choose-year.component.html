@@ -1,0 +1,16 @@
+<div class="choose__year">
+  <button (click)="service.goBack()" class="back">Go back</button>
+  <h1>{{ service.chosenBook }}</h1>
+  <div class="button_wrapper">
+    <button
+      *ngFor="let item of service.lata"
+      (click)="service.yearClick($event)"
+      value="{{ item }}"
+    >
+      {{ item }}
+    </button>
+  </div>
+  <button (click)="service.yearClick($event)" value="all" class="all">
+    All
+  </button>
+</div>

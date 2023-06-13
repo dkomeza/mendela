@@ -1,0 +1,79 @@
+<div class="choose__year">
+  <button class="back" (click)="service.goBack()">Go back</button>
+  <h1>{{ service.chosenBook }}</h1>
+  <div class="button_wrapper">
+    <button
+      *ngFor="let item of service.lata"
+      (click)="service.yearClick($event)"
+      value="{{ item }}"
+    >
+      {{ item }}
+    </button>
+  </div>
+  <button (click)="service.yearClick($event)" value="all" class="all">
+    All
+  </button>
+</div>
+<div class="table__wrapper">
+  <table>
+    <tr>
+      <th>Strona tytulowa</th>
+      <th>Plik</th>
+      <th>Pismo</th>
+      <th>Darczyncy</th>
+    </tr>
+    <tr *ngFor="let item of service.toShow">
+      <td>
+        <a
+          [href]="
+            'http://atarionline.pl/biblioteka/czasopisma/' +
+            service.chosenBook +
+            '/' +
+            item.miniaturka
+          "
+          target="_blank"
+        >
+          <img
+            [src]="
+              'http://atarionline.pl/biblioteka/czasopisma/' +
+              service.chosenBook +
+              '/' +
+              item.miniaturka
+            "
+            alt=""
+          />
+        </a>
+      </td>
+
+      <td>
+        format: <b>{{ item.format }}</b> <br />
+        rozmiar: <b>{{ item.rozmiar }}</b> <br />
+        stron: <b>{{ item.stron }}</b> <br />
+        plik:
+        <b
+          ><a
+            [href]="
+              'http://atarionline.pl/biblioteka/czasopisma/' +
+              service.chosenBook +
+              '/' +
+              item.plik
+            "
+            >tutaj</a
+          ></b
+        >
+      </td>
+
+      <td>
+        nazwa: <b>{{ item.nazwa }}</b> <br />
+        numer: <b>{{ item.numer }}</b> <br />
+        wydawca: <b>{{ item.wydawca }}</b>
+      </td>
+
+      <td>
+        skan: <b>{{ item.skan }}</b> <br />
+        przetworzenie: <b>{{ item.przetworzenie }} </b><br />
+        podeslal: <b>{{ item.podeslal }}</b>
+      </td>
+    </tr>
+  </table>
+</div>
